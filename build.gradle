@@ -1,0 +1,102 @@
+buildscript {
+    ext.kotlin_version = "1.3.61"
+    ext.unpackedDir = "../build/unpacked"
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+// ./gradlew build taskTree
+plugins { id "com.dorongold.task-tree" version "1.3.1" }
+
+subprojects {
+    apply plugin: "org.jetbrains.kotlin.js"
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
+        compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core-js:1.3.3'
+        compile "org.jetbrains.kotlinx:kotlinx-html-js:0.6.12"
+    }
+}
+
+project(":shared") {
+    task assembleWeb(type: Sync) {
+        configurations.compile.each { File file ->
+            from(zipTree(file.absolutePath), {
+                include { fileTreeElement ->
+                    def path = fileTreeElement.path
+                    path == "kotlin.js" || path == "kotlinx-coroutines-core.js" || path == "kotlinx-html-js.js"
+                }
+            })
+        }
+
+        from "${processResources.destinationDir}/manifest.json"
+        from "${processResources.destinationDir}/icon128.png"
+        from "${processResources.destinationDir}/bootstrap.min.css"
+        from "${processResources.destinationDir}/fontawesome.all.min.js"
+
+        from "${compileKotlinJs.destinationDir}/shared.js"
+        into unpackedDir
+    }
+    assemble.dependsOn assembleWeb
+
+    task zip(type: Zip) {
+        dependsOn ":shared:assemble"
+        dependsOn ":background:assemble"
+        dependsOn ":options:assemble"
+        dependsOn ":browser:assemble"
+        dependsOn ":content:assemble"
+
+        from unpackedDir
+        archiveName "vocab-anki-push.zip"
+        destinationDirectory = file('../build/')
+    }
+    build.dependsOn zip
+}
+
+project(':background') {
+    dependencies { compile project(':shared') }
+    task assembleWeb(type: Copy) {
+        from "${compileKotlinJs.destinationDir}/background.js"
+        into unpackedDir
+    }
+    assembleWeb.dependsOn ":shared:assembleWeb"
+    assemble.dependsOn assembleWeb
+}
+project(':options') {
+    dependencies { compile project(':shared') }
+    task assembleWeb(type: Copy) {
+        from "${compileKotlinJs.destinationDir}/options.js"
+        from "${processResources.destinationDir}/options.html"
+        into unpackedDir
+    }
+    assembleWeb.dependsOn ":shared:assembleWeb"
+    assemble.dependsOn assembleWeb
+
+}
+project(':browser') {
+    dependencies { compile project(':shared') }
+    task assembleWeb(type: Copy) {
+        from "${compileKotlinJs.destinationDir}/browser.js"
+        from "${processResources.destinationDir}/popup.html"
+        into unpackedDir
+    }
+    assembleWeb.dependsOn ":shared:assembleWeb"
+    assemble.dependsOn assembleWeb
+
+}
+project(':content') {
+    dependencies { compile project(':shared') }
+    task assembleWeb(type: Copy) {
+        from "${compileKotlinJs.destinationDir}/content.js"
+        into unpackedDir
+    }
+    assembleWeb.dependsOn ":shared:assembleWeb"
+    assemble.dependsOn assembleWeb
+}

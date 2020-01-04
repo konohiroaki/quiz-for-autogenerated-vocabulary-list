@@ -1,0 +1,27 @@
+@startuml
+participant content
+participant browser
+participant background
+participant storage
+participant alarm
+
+content->background: register word
+background->storage: register word in "words"
+background->alarm: set alarm for quiz time
+...wait for alarm time...
+alarm-> background: ring alarm
+background->storage: add to "quizQueue"
+background->browser: badge shows "quizQueue".size\n[if ("words".size >= 4) quizQueue".size, else 0]
+...user opens popup...
+browser->background: request quiz
+background->browser: respond next quiz
+...user answers quiz...
+browser->background: send answer
+background->storage: drop first element in "quizQueue"
+background->browser: update badge
+background->storage: check answer &\nadd quiz result in words[].quizResult
+background->alarm: set alarm again for the word
+background->browser: respond result and answer
+...user press next quiz button...
+browser->background: request quiz
+@enduml

@@ -1,0 +1,41 @@
+{
+  "manifest_version": 2,
+  "name": "Vocab Anki Push",
+  "version": "1.0",
+  "permissions": [
+    "storage",
+    "alarms",
+    "notifications"
+  ],
+  "background": {
+    "persistent": false,
+    "scripts": [
+      "kotlin.js",
+      "kotlinx-coroutines-core.js",
+      "shared.js",
+      "background.js"
+    ]
+  },
+  "options_page": "options.html",
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "kotlin.js",
+        "shared.js",
+        "content.js"
+      ]
+    }
+  ],
+  "browser_action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "128": "icon128.png"
+    }
+  },
+  "icons": {
+    "128": "icon128.png"
+  }
+}

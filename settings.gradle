@@ -1,0 +1,2 @@
+rootProject.name = 'vocab-anki-push'
+include "shared", "background", "options", "browser", "content"
