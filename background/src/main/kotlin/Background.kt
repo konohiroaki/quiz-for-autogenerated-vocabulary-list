@@ -23,6 +23,7 @@ class Background {
     init {
         setMessageHandler()
         setAlarmHandler()
+        setNotificationButtonHandler()
         GlobalScope.launch { badge.update() }
     }
 
@@ -56,11 +57,12 @@ class Background {
     private suspend fun registerWord(request: dynamic) {
         if (words.add(request.word, request.translation)) {
             chrome.notifications.create(
-                null, createProps(
+                "registerWord.${request.word}", createProps(
                     "type", "basic",
                     "iconUrl", "icon128.png",
                     "title", "[Vocab-Anki-Push] New word",
-                    "message", "[${request.word}] -> ${request.translation}"
+                    "message", "[${request.word}] -> ${request.translation}",
+                    "buttons", arrayOf(createProps("title", "Cancel word registration"))
                 )
             )
             alarms.create(request.word)
@@ -146,6 +148,15 @@ class Background {
                 printlnWithTime("[${alarm.name}] alarm ringed")
                 quizQueue.enqueue(alarm.name)
                 badge.update()
+            }
+        }
+    }
+
+    private fun setNotificationButtonHandler() {
+        chrome.notifications.onButtonClicked.addListener { notificationId: String, _ ->
+            // notificationId currently always "registerWord.$word"
+            GlobalScope.launch {
+                removeWord(notificationId.substringAfter("."))
             }
         }
     }
