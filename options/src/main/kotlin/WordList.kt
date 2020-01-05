@@ -61,6 +61,7 @@ class WordList {
             button(classes = "list-group-item list-group-item-action text-center") {
                 style = "outline:none;"
                 i(fontAwesomeIcon)
+                title = msgType.replace("([A-Z])".toRegex(), " $1").toLowerCase()
                 onClickFunction = {
                     chrome.runtime.sendMessage(null, createProps("msgType", msgType, "word", word))
                 }
