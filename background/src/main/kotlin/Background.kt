@@ -5,9 +5,6 @@ import kotlinx.coroutines.launch
 import storage.QuizQueue
 import storage.Words
 
-// TODO [feature]: Support arbitrary lang to arbitrary lang. Not only English to Japanese.
-//                 Schema needs to have srcLang and dstLang.
-//                 Option page needs to support setting which combination to register.
 fun main() {
     printlnWithTime("reloaded")
     Background()

@@ -5,7 +5,6 @@ import org.w3c.dom.HTMLButtonElement
 // TODO [performance]: paging? in case when word list has so many words.
 // TODO [feature]: search function in case paging is implemented.
 // TODO [refactoring]: create data class for storage data.
-// TODO [feature]: export/import function might be nice.
 fun main() {
     setWipeOutHandler()
     setUpdateHandler()
