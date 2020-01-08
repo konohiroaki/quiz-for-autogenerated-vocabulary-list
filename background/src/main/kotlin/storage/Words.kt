@@ -52,14 +52,12 @@ class Words : Storage() {
         }
     }
 
-    suspend fun addQuizResult(word: String, choice: String): Boolean {
+    suspend fun addQuizResult(word: String, result: Boolean) {
         mutex.withLock {
             val words = getWords()
-            val result = words[word].translation == choice
             printlnWithTime("[$word] quiz result: $result")
             words[word].quizResult = getNewQuizResultArray(words, word, result)
             setWords(words)
-            return result
         }
     }
 

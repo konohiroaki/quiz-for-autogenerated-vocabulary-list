@@ -3,7 +3,7 @@
 
 # Storage Design
 chrome.storage.sync
-```json
+```
 {
   "words": {
     "foo": {
@@ -16,16 +16,25 @@ chrome.storage.sync
     }
   },
   "quizQueue": [ "foo", "bar" ],
+  "quiz": {
+    "foo": {
+      "choices":[ <choice1>, <choice2>, <choice3>, <choice4> ],
+      "expected": 2
+    }
+  },
   "alarm": { "dummy": 12345 }
 }
 ```
 | Key | Value |
 |----|----|
-| words | registered words |
-| words[key].translation | translation for registered word |
-| words[key].quizResult | array of boolean for history of quiz results |
-| quizQueue | words in queue for quiz |
-| alarm | dummy data for firing storage.onChange on alarm change |
+| words | registered words. |
+| words[key].translation | translation for registered word. |
+| words[key].quizResult | array of boolean for history of quiz results. |
+| quizQueue | words in queue for quiz. |
+| quiz | current active quiz content. if user closes browserAction without answering, this data remains even though it'll never used. |
+| quiz[key].choices | choices provided to client. |
+| quiz[key].expected | correct answer index number [0, 4] (4 means non of above). |
+| alarm | dummy data for firing storage.onChange on alarm change. |
 
 # Message Design
 ## registerWord
@@ -56,12 +65,13 @@ browser_action -> background
 ```
 { "msgType": "answerQuiz",
   "word": <wordForQuiz>,
-  "choice": <chosenAnswer> }
+  "actual": <index> }
 ```
+index range is [0, 4]
 ### response
 ```
 { "result": <Boolean>,
-  "answer": <translationText> }
+  "expected": <index> }
 ```
 ## option page related messages
 omitted

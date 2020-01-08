@@ -7,6 +7,9 @@ external val chrome: dynamic
 
 class Util {
     companion object {
+
+        const val CHOICE_COUNT = 4
+
         fun createProps(vararg keyVal: dynamic): dynamic {
             val props = js("{}")
             for (i in 0 until keyVal.size / 2) {

@@ -1,9 +1,12 @@
+import Util.Companion.CHOICE_COUNT
 import Util.Companion.createProps
 import Util.Companion.printlnWithTime
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import storage.Quiz
 import storage.QuizQueue
 import storage.Words
+import kotlin.random.Random
 
 fun main() {
     printlnWithTime("reloaded")
@@ -14,6 +17,7 @@ class Background {
 
     private val words = Words()
     private val quizQueue = QuizQueue()
+    private val quiz = Quiz()
     private val alarms = Alarm(words, quizQueue)
     private val badge = Badge(words, quizQueue)
 
@@ -69,24 +73,33 @@ class Background {
     private suspend fun respondNextQuiz(response: dynamic) {
         printlnWithTime("quiz requested")
         printlnWithTime("quizQueue-> ${quizQueue.toJsonString()}")
-        if (quizQueue.isEmpty()) {
+        if (quizQueue.isEmpty() || words.size() < CHOICE_COUNT) {
             response(js("{}"))
         } else {
-            if (words.size() < 4) {
-                response(js("{}"))
-            } else {
-                val word = quizQueue.peek()!!
-                printlnWithTime("[$word] selected for quiz")
-                val choices = getChoices(word, 4)
-                response(createProps("word", word, "choices", choices))
-                printlnWithTime("[$word] quiz choices: [$choices]")
-            }
+            val word = quizQueue.peek()!!
+            printlnWithTime("[$word] selected for quiz")
+
+            val choices = prepareChoices(word)
+            response(createProps("word", word, "choices", choices))
+            printlnWithTime("[$word] quiz choices: [$choices]")
         }
     }
 
-    private suspend fun getChoices(word: String, count: Int): Array<String> {
-        val choices = mutableSetOf<String>(words.translation(word))
-        while (choices.size < count) {
+    private suspend fun prepareChoices(word: String): Array<String> {
+        val expected = words.translation(word)
+        val choices = getChoices(expected)
+        val idx = choices.indexOf(expected)
+
+        quiz.set(word, choices, if (idx != -1) idx else CHOICE_COUNT)
+        return choices
+    }
+
+    private suspend fun getChoices(expected: String): Array<String> {
+        val choices = mutableSetOf<String>()
+        if (Random.nextInt(2) == 0) {
+            choices.add(expected)
+        }
+        while (choices.size < CHOICE_COUNT) {
             choices.add(words.random().translation)
         }
         return choices.toList().shuffled().toTypedArray()
@@ -97,9 +110,13 @@ class Background {
     private suspend fun handleQuizAnswer(request: dynamic, response: dynamic) {
         quizQueue.dequeue()
         badge.update()
-        val result = words.addQuizResult(request.word, request.choice)
+        val quizWord = quiz.get(request.word)
+
+        val result = quizWord.expected == request.actual
+        words.addQuizResult(request.word, result)
         alarms.create(request.word)
-        response(createProps("result", result, "answer", words.translation(request.word)))
+
+        response(createProps("result", result, "expected", quizWord.expected))
     }
 
     private suspend fun getAllData(response: dynamic) {

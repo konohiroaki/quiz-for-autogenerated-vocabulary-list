@@ -1,3 +1,4 @@
+import Util.Companion.CHOICE_COUNT
 import Util.Companion.createProps
 import Util.Companion.printlnWithTime
 import Util.Companion.select
@@ -8,6 +9,7 @@ import kotlinx.html.js.onClickFunction
 import kotlinx.html.style
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLDivElement
+import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLHeadingElement
 import kotlin.browser.document
 import kotlin.browser.window
@@ -58,39 +60,43 @@ fun emptyChoices() {
 
 fun setChoices(response: dynamic) {
     val choices = select<HTMLDivElement>("#choices")
-    repeat(4) { idx ->
-        val choice = document.create.button(classes = "list-group-item list-group-item-action") {
-            style = "outline:none;"
-            +(response.choices[idx] as String)
-            onClickFunction = { answerQuiz(response.word, response.choices[idx]) }
-        }
-        choices.appendChild(choice)
+    repeat(CHOICE_COUNT) { idx ->
+        val choiceButton = choiceDom(response.choices[idx], response.word, idx)
+        choices.appendChild(choiceButton)
+    }
+    val choiceButton = choiceDom("上記のどれでもない", response.word)
+    choices.appendChild(choiceButton)
+}
+
+fun choiceDom(text: String, word: String, actual: Int = CHOICE_COUNT): HTMLElement {
+    return document.create.button(classes = "list-group-item list-group-item-action") {
+        style = "outline:none;"
+        +text
+        onClickFunction = { answerQuiz(word, actual) }
     }
 }
 
 // TODO [refactoring]: maybe actual/expected wording is better than choice/answer.
-fun answerQuiz(word: String, choice: String) {
-    chrome.runtime.sendMessage(null, answerQuizRequest(word, choice)) { response ->
-        printlnWithTime("choice: $choice")
-        printlnWithTime("answer: ${response.answer}")
+fun answerQuiz(word: String, actual: Int) {
+    chrome.runtime.sendMessage(null, answerQuizRequest(word, actual)) { response ->
+        printlnWithTime("actual  : $actual")
+        printlnWithTime("expected: ${response.expected}")
 
         val choices = selectAll<HTMLButtonElement>("#choices > button")
         if (!response.result) {
-            val wrongChoice = choices.first { it.innerText == choice }
-            wrongChoice.setAttribute("style", "background-color:#ffdddd")
+            choices[actual].setAttribute("style", "background-color:#ffdddd")
         }
-        val correctChoice = choices.first { it.innerText == response.answer }
-        correctChoice.setAttribute("style", "background-color:#ddffdd")
+        choices[response.expected].setAttribute("style", "background-color:#ddffdd")
 
         showNextQuizButton()
     }
 }
 
-fun answerQuizRequest(word: String, choice: String): dynamic {
+fun answerQuizRequest(word: String, actual: Int): dynamic {
     return createProps(
         "msgType", "answerQuiz",
         "word", word,
-        "choice", choice
+        "actual", actual
     )
 }
 
