@@ -6,22 +6,23 @@ participant storage
 participant alarm
 
 content->background: register word
-background->storage: register word in "words"
+background->storage: register word in storage.words
 background->alarm: set alarm for quiz time
 ...wait for alarm time...
 alarm-> background: ring alarm
-background->storage: add to "quizQueue"
-background->browser: badge shows "quizQueue".size\n[if ("words".size >= 4) quizQueue".size, else 0]
+background->storage: add to storage.quizQueue
+background->browser: badge shows number below\n[if (storage.words.size >= 4) storage.quizQueue.size, else 0]
 ...user opens popup...
 browser->background: request quiz
 background->browser: respond next quiz
 ...user answers quiz...
 browser->background: send answer
-background->storage: drop first element in "quizQueue"
+background->storage: drop first element in storage.quizQueue
 background->browser: update badge
-background->storage: check answer &\nadd quiz result in words[].quizResult
+background->storage: check answer &\nadd quiz result in storage.words[word].quizResult
 background->alarm: set alarm again for the word
 background->browser: respond result and answer
 ...user press next quiz button...
 browser->background: request quiz
+...same as above...
 @enduml
