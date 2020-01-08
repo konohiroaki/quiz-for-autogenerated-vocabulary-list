@@ -76,7 +76,6 @@ fun choiceDom(text: String, word: String, actual: Int = CHOICE_COUNT): HTMLEleme
     }
 }
 
-// TODO [refactoring]: maybe actual/expected wording is better than choice/answer.
 fun answerQuiz(word: String, actual: Int) {
     chrome.runtime.sendMessage(null, answerQuizRequest(word, actual)) { response ->
         printlnWithTime("actual  : $actual")

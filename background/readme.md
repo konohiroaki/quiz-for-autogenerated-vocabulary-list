@@ -31,9 +31,9 @@ chrome.storage.sync
 | words[key].translation | translation for registered word. |
 | words[key].quizResult | array of boolean for history of quiz results. |
 | quizQueue | words in queue for quiz. |
-| quiz | current active quiz content. if user closes browserAction without answering, this data remains even though it'll never used. |
+| quiz | current active quiz content. if user closes browserAction without answering, this data remains even though it'll never be used. |
 | quiz[key].choices | choices provided to client. |
-| quiz[key].expected | correct answer index number [0, 4] (4 means non of above). |
+| quiz[key].expected | correct answer index number [0, 4] (4 means non of the above). |
 | alarm | dummy data for firing storage.onChange on alarm change. |
 
 # Message Design
