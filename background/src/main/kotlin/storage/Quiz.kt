@@ -13,11 +13,10 @@ class Quiz : Storage() {
     suspend fun get(word: String): dynamic {
         val quizWord = getStorage("quiz", null)!![word]
         printlnWithTime(JSON.stringify(quizWord))
-        clear()
         return quizWord
     }
 
-    private suspend fun clear() {
+    suspend fun clear() {
         setStorage("quiz", js("{}"))
     }
 }

@@ -19,8 +19,8 @@ class Util {
         }
 
         fun printlnWithTime(str: Any?) {
-            val time = Date(Date.now()).toLocaleTimeString()
-            println("[$time] $str")
+            val now = Date(Date.now())
+            println("[${now.toLocaleTimeString()}.${now.getMilliseconds()}] $str")
         }
 
         fun <T> select(selector: String): T {

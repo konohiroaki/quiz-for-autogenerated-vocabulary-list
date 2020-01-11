@@ -109,14 +109,15 @@ class Background {
     //             Maybe same countermeasure for CSRF (create token for each quiz)
     private suspend fun handleQuizAnswer(request: dynamic, response: dynamic) {
         quizQueue.dequeue()
-        badge.update()
         val quizWord = quiz.get(request.word)
-
         val result = quizWord.expected == request.actual
-        words.addQuizResult(request.word, result)
-        alarms.create(request.word)
 
         response(createProps("result", result, "expected", quizWord.expected))
+
+        badge.update()
+        words.addQuizResult(request.word, result)
+        alarms.create(request.word)
+        quiz.clear()
     }
 
     private suspend fun getAllData(response: dynamic) {
