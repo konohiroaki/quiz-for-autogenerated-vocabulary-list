@@ -83,9 +83,9 @@ fun answerQuiz(word: String, actual: Int) {
 
         val choices = selectAll<HTMLButtonElement>("#choices > button")
         if (!response.result) {
-            choices[actual].setAttribute("style", "background-color:#ffdddd")
+            choices[actual].style.backgroundColor = "#ffdddd"
         }
-        choices[response.expected].setAttribute("style", "background-color:#ddffdd")
+        choices[response.expected].style.backgroundColor = "#ddffdd"
 
         showNextQuizButton()
     }
