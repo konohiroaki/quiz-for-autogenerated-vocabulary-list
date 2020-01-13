@@ -1,8 +1,5 @@
 import Util.Companion.createProps
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.HTMLLIElement
-import org.w3c.dom.HTMLOListElement
-import org.w3c.dom.HTMLSpanElement
+import org.w3c.dom.*
 import kotlin.browser.document
 
 class AlcCoJp {
@@ -25,12 +22,13 @@ class AlcCoJp {
     private fun getSearchWord() = (document.querySelector("#searchWord") as HTMLSpanElement).innerText
 
     private fun getTranslation(): String {
-        val ol = document.querySelector("#resultsList ul > li ol") as HTMLOListElement
-        val li = ol.querySelector("li")
-        return if (li == undefined) {
-            ol.innerText
+        val div = document.querySelector("#resultsList > ul > li > div") as HTMLDivElement
+        return if (div.firstChild!!.nodeName == "#text") { // no wordclass
+            div.innerText
+        } else if (div.querySelector("ol > li") == null) { // no list of translation for wordclass
+            (div.querySelector("ol") as HTMLOListElement).innerText
         } else {
-            (li as HTMLLIElement).innerText
-        }.substringBefore("\n")
+            (div.querySelector("ol > li") as HTMLLIElement).innerText
+        }.substringBefore("\n").substringBefore("◆")
     }
 }
