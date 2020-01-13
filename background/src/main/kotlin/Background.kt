@@ -61,7 +61,7 @@ class Background {
                 "registerWord.${request.word}", createProps(
                     "type", "basic",
                     "iconUrl", "icon128.png",
-                    "title", "[Vocab-Anki-Push] New word",
+                    "title", "New word registered",
                     "message", "[${request.word}] -> ${request.translation}",
                     "buttons", arrayOf(createProps("title", "Cancel word registration"))
                 )

@@ -54,7 +54,7 @@ project(":shared") {
         dependsOn ":content:assemble"
 
         from unpackedDir
-        archiveName "vocab-anki-push.zip"
+        archiveName "quiz.zip"
         destinationDirectory = file('../build/')
     }
     build.dependsOn zip
