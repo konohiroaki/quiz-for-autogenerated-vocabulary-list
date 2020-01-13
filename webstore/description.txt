@@ -1,6 +1,7 @@
 Aren't you tired of searching the meaning for same word again and again? Here is a supplementary tool!
 
-This is an extension to learn English->Japanese meaning. It generates quiz for words you searched with below tools/websites.
+This is an extension to learn English->Japanese meaning by answering quiz from vocabulary list generated based on search history.
+Words are registered to vocabulary list only when you use below tools/websites.
 * Google Translate Plugin (https://chrome.google.com/webstore/detail/google-translate/aapbdbdomjkkjkaonfhkkikfgjllcleb)
 * ALC (https://eow.alc.co.jp/)
 
