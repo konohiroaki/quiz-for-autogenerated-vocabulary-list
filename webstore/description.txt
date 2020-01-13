@@ -1,0 +1,17 @@
+Aren't you tired of searching the meaning for same word again and again? Here is a supplementary tool!
+
+This is an extension to learn English->Japanese meaning. It generates quiz for words you searched with below tools/websites.
+* Google Translate Plugin (https://chrome.google.com/webstore/detail/google-translate/aapbdbdomjkkjkaonfhkkikfgjllcleb)
+* ALC (https://eow.alc.co.jp/)
+
+When you search a word, this extension will store its word and translation, and after a while quiz will be ready. When the quiz is ready, click the extension icon on the upper right of the browser to open the quiz. (You can notice a badge will be shown on the icon when it's ready)
+You will choose an answer from 5 choices. When it's correct, it only shows green color on it. When it's incorrect, it shows red color on the selected choice, and green color for the correct answer.
+If you got correct answer, next quiz for that word will be enqueued after longer period. If you got incorrect answer, next quiz for that word will be enqueued after same period.
+
+You can modify the stored data from option page. There are 6 operations you can do for each word.
+* Immediately add to quiz queue
+* Immediately remove from quiz queue
+* Start an alarm (When the alarm time comes, that word will be added to the quiz queue)
+* Stop the alarm
+* Remove the word from stored data
+* Change the translation for the word (You need to input text in the text field next to the button)
