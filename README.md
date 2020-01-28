@@ -3,6 +3,7 @@
 A chrome browser extension to learn English->Japanese meaning. It generates quiz for words you searched with below tools/websites.
 * [Google Translate Plugin](https://chrome.google.com/webstore/detail/google-translate/aapbdbdomjkkjkaonfhkkikfgjllcleb)
 * [ALC](https://eow.alc.co.jp/)
+* [Weblio](https://ejje.weblio.jp/)
 
 ## How to build
 ```shell script
