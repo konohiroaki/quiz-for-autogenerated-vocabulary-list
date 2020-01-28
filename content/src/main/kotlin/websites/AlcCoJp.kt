@@ -1,27 +1,20 @@
-import Util.Companion.createProps
+package websites
+
 import org.w3c.dom.*
 import kotlin.browser.document
 
-class AlcCoJp {
+class AlcCoJp : TranslationWebsiteRegisterer() {
 
-    fun register() {
-        if (invalidPage()) return
-        chrome.runtime.sendMessage(
-            null,
-            createProps("msgType", "registerWord", "word", getSearchWord(), "translation", getTranslation())
-        )
-    }
-
-    private fun invalidPage() = !isSearchWordPresent() || !isEnglish2Japanese()
+    override fun isValidPage() = isSearchWordPresent() && isEnglish2Japanese()
 
     private fun isSearchWordPresent() = document.querySelector("#searchWord") != null
 
     private fun isEnglish2Japanese() =
         (document.querySelector("#f1 > input[name=dk]") as HTMLInputElement).value == "EJ"
 
-    private fun getSearchWord() = (document.querySelector("#searchWord") as HTMLSpanElement).innerText
+    override fun getSearchWord() = (document.querySelector("#searchWord") as HTMLSpanElement).innerText
 
-    private fun getTranslation(): String {
+    override fun getTranslation(): String {
         val div = document.querySelector("#resultsList > ul > li > div") as HTMLDivElement
         return if (div.firstChild!!.nodeName == "#text") { // no wordclass
             div.innerText

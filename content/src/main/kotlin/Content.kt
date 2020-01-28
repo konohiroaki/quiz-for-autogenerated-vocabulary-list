@@ -1,4 +1,6 @@
 import org.w3c.dom.url.URL
+import websites.AlcCoJp
+import websites.WeblioJp
 import kotlin.browser.window
 
 external val chrome: dynamic
