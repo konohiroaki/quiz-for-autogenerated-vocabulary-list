@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.1.1] - 2020-01-29
+
+### Removed
+- (#8) Remove support for google translate plugin
+
 ## [1.1.0] - 2020-01-28
 
 ### Added
