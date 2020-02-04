@@ -19,7 +19,8 @@ chrome.storage.sync
   "quiz": {
     "foo": {
       "choices":[ <choice1>, <choice2>, <choice3>, <choice4> ],
-      "expected": 2
+      "answer": 2,
+      "translation": "フー"
     }
   },
   "alarm": { "dummy": 12345 }
@@ -33,7 +34,8 @@ chrome.storage.sync
 | quizQueue | words in queue for quiz. |
 | quiz | current active quiz content. if user closes browserAction without answering, this data remains even though it'll never be used. |
 | quiz[key].choices | choices provided to client. |
-| quiz[key].expected | correct answer index number [0, 4] (4 means non of the above). |
+| quiz[key].answer | correct answer index number [0, 4] (4 means non of the above). |
+| quiz[key].translation | translation string. |
 | alarm | dummy data for firing storage.onChange on alarm change. |
 
 # Message Design
