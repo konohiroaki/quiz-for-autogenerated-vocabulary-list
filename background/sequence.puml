@@ -6,12 +6,12 @@ participant storage
 participant alarm
 
 content->background: register word
-background->storage: register word in storage.words
+background->storage: register word in \nstorage.words-<srcLang><dstLang>
 background->alarm: set alarm for quiz time
 ...wait for alarm time...
 alarm-> background: ring alarm
 background->storage: add to storage.quizQueue
-background->browser: badge shows number below\n[if (storage.words.size >= 4) storage.quizQueue.size, else 0]
+background->browser: badge shows number of ready quiz
 ...user opens popup...
 browser->background: request quiz
 background->browser: respond next quiz
@@ -19,7 +19,7 @@ background->browser: respond next quiz
 browser->background: send answer
 background->storage: drop first element in storage.quizQueue
 background->browser: update badge
-background->storage: check answer &\nadd quiz result in storage.words[word].quizResult
+background->storage: check answer &\nincrement corresponding correctCount
 background->alarm: set alarm again for the word
 background->browser: respond result and answer
 ...user press next quiz button...

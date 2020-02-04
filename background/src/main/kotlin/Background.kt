@@ -8,11 +8,6 @@ import storage.QuizQueue
 import storage.Words
 import kotlin.random.Random
 
-fun main() {
-    printlnWithTime("extension loaded")
-    Background()
-}
-
 class Background {
 
     private val words = Words()
