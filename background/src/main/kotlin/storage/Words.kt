@@ -37,7 +37,7 @@ class Words : Storage() {
         }
     }
 
-    suspend fun translation(word: String) = getWords()[word].translation
+    suspend fun translation(word: String) = getWords()[word].translation as String
     suspend fun random(): dynamic {
         val words = getWords()
         val keys = keys(words)

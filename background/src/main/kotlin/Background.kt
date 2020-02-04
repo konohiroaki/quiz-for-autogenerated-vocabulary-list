@@ -88,18 +88,18 @@ class Background {
     }
 
     private suspend fun prepareChoices(word: String): Array<String> {
-        val expected = words.translation(word)
-        val choices = getChoices(expected)
-        val idx = choices.indexOf(expected)
+        val translation = words.translation(word)
+        val choices = getChoices(translation)
+        val idx = choices.indexOf(translation)
 
-        quiz.set(word, choices, if (idx != -1) idx else CHOICE_COUNT)
+        quiz.set(word, choices, if (idx != -1) idx else CHOICE_COUNT, translation)
         return choices
     }
 
-    private suspend fun getChoices(expected: String): Array<String> {
+    private suspend fun getChoices(translation: String): Array<String> {
         val choices = mutableSetOf<String>()
         if (Random.nextInt(2) == 0) {
-            choices.add(expected)
+            choices.add(translation)
         }
         while (choices.size < CHOICE_COUNT) {
             choices.add(words.random().translation)
@@ -112,9 +112,14 @@ class Background {
     private suspend fun handleQuizAnswer(request: dynamic, response: dynamic) {
         quizQueue.dequeue()
         val quizWord = quiz.get(request.word)
-        val result = quizWord.expected == request.actual
+        val result = quizWord.answer == request.guess
 
-        response(createProps("result", result, "expected", quizWord.expected))
+        val res = if (quizWord.answer != CHOICE_COUNT) {
+            createProps("result", result, "answer", quizWord.answer)
+        } else {
+            createProps("result", result, "answer", quizWord.answer, "translation", quizWord.translation)
+        }
+        response(res)
 
         badge.update()
         words.addQuizResult(request.word, result)
