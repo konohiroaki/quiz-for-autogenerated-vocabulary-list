@@ -5,8 +5,8 @@ import Util.Companion.printlnWithTime
 
 class Quiz : Storage() {
 
-    suspend fun set(word: String, choices: Array<String>, idx: Int) {
-        val quiz = createProps(word, createProps("choices", choices, "expected", idx))
+    suspend fun set(word: String, choices: Array<String>, idx: Int, translation: String) {
+        val quiz = createProps(word, createProps("choices", choices, "answer", idx, "translation", translation))
         setStorage("quiz", quiz)
     }
 

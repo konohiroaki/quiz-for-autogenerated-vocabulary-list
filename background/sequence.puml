@@ -16,7 +16,7 @@ background->browser: badge shows number of ready quiz
 browser->background: request quiz
 background->browser: respond next quiz
 ...user answers quiz...
-browser->background: send answer
+browser->background: send user's guess
 background->storage: drop first element in storage.quizQueue
 background->browser: update badge
 background->storage: check answer &\nincrement corresponding correctCount

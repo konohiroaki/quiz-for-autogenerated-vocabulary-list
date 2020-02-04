@@ -68,34 +68,38 @@ fun setChoices(response: dynamic) {
     choices.appendChild(choiceButton)
 }
 
-fun choiceDom(text: String, word: String, actual: Int = CHOICE_COUNT): HTMLElement {
+fun choiceDom(text: String, word: String, guess: Int = CHOICE_COUNT): HTMLElement {
     return document.create.button(classes = "list-group-item list-group-item-action") {
         style = "outline:none;"
         +text
-        onClickFunction = { answerQuiz(word, actual) }
+        onClickFunction = { answerQuiz(word, guess) }
     }
 }
 
-fun answerQuiz(word: String, actual: Int) {
-    chrome.runtime.sendMessage(null, answerQuizRequest(word, actual)) { response ->
-        printlnWithTime("actual  : $actual")
-        printlnWithTime("expected: ${response.expected}")
+fun answerQuiz(word: String, guess: Int) {
+    chrome.runtime.sendMessage(null, answerQuizRequest(word, guess)) { response ->
+        printlnWithTime("guess  : $guess")
+        printlnWithTime("answer: ${response.answer}")
 
         val choices = selectAll<HTMLButtonElement>("#choices > button")
         if (!response.result) {
-            choices[actual].style.backgroundColor = "#ffdddd"
+            choices[guess].style.backgroundColor = "#ffdddd"
         }
-        choices[response.expected].style.backgroundColor = "#ddffdd"
+        choices[response.answer].style.backgroundColor = "#ddffdd"
+        if (response.answer == 4) {
+            choices[response.answer].style.color = "#0044ff"
+            choices[response.answer].innerText = response.translation
+        }
 
         showNextQuizButton()
     }
 }
 
-fun answerQuizRequest(word: String, actual: Int): dynamic {
+fun answerQuizRequest(word: String, guess: Int): dynamic {
     return createProps(
         "msgType", "answerQuiz",
         "word", word,
-        "actual", actual
+        "guess", guess
     )
 }
 

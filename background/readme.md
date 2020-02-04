@@ -26,7 +26,8 @@ chrome.storage.sync
     "language": "enja"
     "foo": {
       "choices":[ <choice1>, <choice2>, <choice3>, <choice4> ],
-      "expected": 2
+      "answer": 2,
+      "translation": "フー"
     }
   },
   "alarm": { "dummy": 12345 }
@@ -44,7 +45,8 @@ chrome.storage.sync
 | quiz | Current active quiz content. If user closes browserAction without answering, this data remains even though it'll never be used. |
 | quiz.language | Src/dst language of the word. |
 | quiz[\<word>].choices | Choices provided to client. |
-| quiz[\<word>].expected | Correct answer index number [0, 4] (4 means non of the above). |
+| quiz[\<word>].answer | Correct answer index number [0, 4] (4 means non of the above). |
+| quiz[\<word>].translation | translation string. |
 | alarm | Dummy data for firing storage.onChange on alarm change. |
 
 # Message Design
@@ -78,13 +80,17 @@ browser_action -> background
 { "msgType": "answerQuiz",
   "language": "<srcLang><dstLang>
   "word": <wordForQuiz>,
-  "actual": <index> }
+  "guess": <index> }
 ```
 index range is [0, 4]
 ### response
 ```
-{ "result": <Boolean>,
-  "expected": <index> }
+{ "result": <boolean>,
+  "answer": <index>,
+  "translation": <string> }
 ```
+| Key | Value |
+|----|----|
+| translation | Optional. Present only when <index> is 4. |
 ## option page related messages
 omitted
