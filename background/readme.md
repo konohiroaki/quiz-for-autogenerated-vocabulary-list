@@ -65,13 +65,17 @@ browser_action -> background
 ```
 { "msgType": "answerQuiz",
   "word": <wordForQuiz>,
-  "actual": <index> }
+  "guess": <index> }
 ```
 index range is [0, 4]
 ### response
 ```
-{ "result": <Boolean>,
-  "expected": <index> }
+{ "result": <boolean>,
+  "answer": <index>,
+  "translation": <string> }
 ```
+| Key | Value |
+|----|----|
+| translation | Optional. Present only when <index> is 4. |
 ## option page related messages
 omitted
