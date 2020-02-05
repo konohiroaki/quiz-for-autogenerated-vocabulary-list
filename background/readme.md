@@ -5,7 +5,7 @@
 chrome.storage.sync
 ```
 {
-  "storage_version": "2"
+  "storageVersion": 2
   "words-enja": {
     "foo": {
       "translation": "フー",
@@ -23,12 +23,11 @@ chrome.storage.sync
     ...
   ],
   "quiz": {
-    "language": "enja"
-    "foo": {
-      "choices":[ <choice1>, <choice2>, <choice3>, <choice4> ],
-      "answer": 2,
-      "translation": "フー"
-    }
+    "language": "enja",
+    "word": "foo",
+    "choices":[ <choice1>, <choice2>, <choice3>, <choice4> ],
+    "answer": 2,
+    "translation": "フー"
   },
   "alarm": { "dummy": 12345 }
 }
