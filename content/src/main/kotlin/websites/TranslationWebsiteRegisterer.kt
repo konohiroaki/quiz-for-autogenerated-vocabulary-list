@@ -1,5 +1,6 @@
 package websites
 
+import Languages
 import Util.Companion.createProps
 import chrome
 
@@ -14,12 +15,15 @@ abstract class TranslationWebsiteRegisterer {
     private fun wordRegistrationProps(): dynamic {
         return createProps(
             "msgType", "registerWord",
+            "language", Languages.getKey(getSrcLanguage(), getDstLanguage()),
             "word", getSearchWord(),
             "translation", getTranslation()
         )
     }
 
     protected abstract fun isValidPage(): Boolean
+    protected abstract fun getSrcLanguage(): Languages
+    protected abstract fun getDstLanguage(): Languages
     protected abstract fun getSearchWord(): String
     protected abstract fun getTranslation(): String
 }

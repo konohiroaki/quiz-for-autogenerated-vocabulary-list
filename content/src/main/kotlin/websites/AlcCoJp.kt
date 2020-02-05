@@ -1,16 +1,19 @@
 package websites
 
+import Languages.ENGLISH
+import Languages.JAPANESE
 import org.w3c.dom.*
 import kotlin.browser.document
 
 class AlcCoJp : TranslationWebsiteRegisterer() {
 
     override fun isValidPage() = isSearchWordPresent() && isEnglish2Japanese()
-
     private fun isSearchWordPresent() = document.querySelector("#searchWord") != null
-
     private fun isEnglish2Japanese() =
         (document.querySelector("#f1 > input[name=dk]") as HTMLInputElement).value == "EJ"
+
+    override fun getSrcLanguage() = ENGLISH
+    override fun getDstLanguage() = JAPANESE
 
     override fun getSearchWord() = (document.querySelector("#searchWord") as HTMLSpanElement).innerText
 
