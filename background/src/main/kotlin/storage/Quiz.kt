@@ -10,8 +10,22 @@ class Quiz : Storage() {
         setStorage("quiz", quiz)
     }
 
+    suspend fun setV2(langKey: String, word: String, choices: Array<String>, idx: Int, translation: String) {
+        val quiz = createProps(
+            "language", langKey, "word", word,
+            "choices", choices, "answer", idx, "translation", translation
+        )
+        setStorage("quiz", quiz)
+    }
+
     suspend fun get(word: String): dynamic {
         val quizWord = getStorage("quiz", null)!![word]
+        printlnWithTime(JSON.stringify(quizWord))
+        return quizWord
+    }
+
+    suspend fun getV2(): dynamic {
+        val quizWord = getStorage("quiz", null)!!
         printlnWithTime(JSON.stringify(quizWord))
         return quizWord
     }
