@@ -11,7 +11,7 @@ class StorageV2 : Storage() {
     suspend fun getWords(src: Languages, dst: Languages) = getStorage("words-${src.key}${dst.key}", js("{}"))
     suspend fun setWords(src: Languages, dst: Languages, words: dynamic) {
 //        setStorage("words-${src.key}${dst.key}", words)
-        printlnWithTime("words-${Languages.getKey(src, dst)}")
+        printlnWithTime("words-${Languages.getLangKey(src, dst)}")
         printlnWithTime(JSON.stringify(words))
     }
 

@@ -1,5 +1,6 @@
 package storage
 
+import Languages
 import Util.Companion.createProps
 import Util.Companion.printlnWithTime
 import kotlinx.coroutines.sync.Mutex
@@ -20,13 +21,13 @@ class QuizQueue : Storage() {
         }
     }
 
-    suspend fun enqueueV2(langKey: String, word: String) {
+    suspend fun enqueueV2(wordKey: String) {
         // mutex to avoid get1 -> edit1 -> get2 -> edit2 -> set1 -> set2
         // force to       get1 -> edit1 -> set1 -> get2 -> edit2 -> set2
         // so quizQueue won't corrupt
         mutex.withLock {
             val queue = getQuizQueueV2().toMutableList()
-            queue.add(createProps("language", langKey, "word", word))
+            queue.add(createProps("language", Languages.getLangKey(wordKey), "word", Languages.getWord(wordKey)))
             setQuizQueue(queue.toTypedArray())
         }
     }
@@ -56,8 +57,9 @@ class QuizQueue : Storage() {
         }
     }
 
-    suspend fun removeV2(langKey: String, word: String) {
+    suspend fun removeV2(wordKey: String) {
         mutex.withLock {
+            val (langKey, word) = Languages.splitWordKey(wordKey)
             val queue = getQuizQueueV2()
             val removedArray = queue.filter { it.language != langKey || it.word != word }.toTypedArray()
             setQuizQueue(removedArray)
@@ -66,7 +68,8 @@ class QuizQueue : Storage() {
     }
 
     suspend fun contains(word: String) = getQuizQueue().contains(word)
-    suspend fun containsV2(langKey: String, word: String): Boolean {
+    suspend fun containsV2(wordKey: String): Boolean {
+        val (langKey, word) = Languages.splitWordKey(wordKey)
         return getQuizQueueV2().firstOrNull { it.language == langKey && it.word == word } != null
     }
 

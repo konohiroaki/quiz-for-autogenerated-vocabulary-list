@@ -15,7 +15,7 @@ abstract class TranslationWebsiteRegisterer {
     private fun wordRegistrationProps(): dynamic {
         return createProps(
             "msgType", "registerWord",
-            "language", Languages.getKey(getSrcLanguage(), getDstLanguage()),
+            "langKey", Languages.getLangKey(getSrcLanguage(), getDstLanguage()),
             "word", getSearchWord(),
             "translation", getTranslation()
         )

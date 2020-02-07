@@ -34,7 +34,7 @@ class StorageConverter {
 
         private suspend fun convertQuizQueueV1toV2() {
             val newQuizQueue: Array<dynamic> = storageV1.getQuizQueue().map { element ->
-                createProps("language", Languages.getKey(ENGLISH, JAPANESE), "word", element)
+                createProps("language", Languages.getLangKey(ENGLISH, JAPANESE), "word", element)
             }.toTypedArray()
             storageV2.setQuizQueue(newQuizQueue)
         }

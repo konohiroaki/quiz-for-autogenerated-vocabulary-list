@@ -1,5 +1,6 @@
 package storage
 
+import Languages
 import Util.Companion.createProps
 import Util.Companion.printlnWithTime
 import kotlinx.coroutines.sync.Mutex
@@ -26,7 +27,8 @@ class Words : Storage() {
         }
     }
 
-    suspend fun addV2(langKey: String, word: String, translation: String): Boolean {
+    suspend fun addV2(wordKey: String, translation: String): Boolean {
+        val (langKey, word) = Languages.splitWordKey(wordKey)
         mutex.withLock {
             val words = getWordsV2(langKey)
             if (contains(words, word)) {
@@ -51,7 +53,8 @@ class Words : Storage() {
         }
     }
 
-    suspend fun removeV2(langKey: String, word: String) {
+    suspend fun removeV2(wordKey: String) {
+        val (langKey, word) = Languages.splitWordKey(wordKey)
         mutex.withLock {
             val words = getWordsV2(langKey)
             if (contains(words, word)) {
@@ -63,7 +66,11 @@ class Words : Storage() {
     }
 
     suspend fun translation(word: String) = getWords()[word].translation as String
-    suspend fun translationV2(langKey: String, word: String) = getWordsV2(langKey)[word].translation as String
+    suspend fun translationV2(wordKey: String): String {
+        val (langKey, word) = Languages.splitWordKey(wordKey)
+        return getWordsV2(langKey)[word].translation as String
+    }
+
     suspend fun random(): dynamic {
         val words = getWords()
         val keys = keys(words)
@@ -84,7 +91,8 @@ class Words : Storage() {
         }
     }
 
-    suspend fun changeTranslationV2(langKey: String, word: String, translation: String) {
+    suspend fun changeTranslationV2(wordKey: String, translation: String) {
+        val (langKey, word) = Languages.splitWordKey(wordKey)
         mutex.withLock {
             val words = getWordsV2(langKey)
             words[word].translation = translation
@@ -107,7 +115,8 @@ class Words : Storage() {
         return list.toTypedArray()
     }
 
-    suspend fun incrementCorrectCountV2(langKey: String, word: String) {
+    suspend fun incrementCorrectCountV2(wordKey: String) {
+        val (langKey, word) = Languages.splitWordKey(wordKey)
         mutex.withLock {
             val words = getWordsV2(langKey)
             words[word].correctCount += 1
@@ -116,7 +125,10 @@ class Words : Storage() {
     }
 
     suspend fun quizResult(word: String) = getWords()[word].quizResult as Array<Boolean>
-    suspend fun correctCountV2(langKey: String, word: String) = getWordsV2(langKey)[word].correctCount as Int
+    suspend fun correctCountV2(wordKey: String): Int {
+        val (langKey, word) = Languages.splitWordKey(wordKey)
+        return getWordsV2(langKey)[word].correctCount as Int
+    }
 
     private fun keys(words: dynamic) = js("Object").keys(words) as Array<String>
     suspend fun size() = keys(getWords()).size

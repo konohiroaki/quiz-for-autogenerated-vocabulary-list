@@ -33,6 +33,20 @@ class Alarm(private val words: Words, private val quizQueue: QuizQueue) {
         }
     }
 
+    suspend fun createV2(wordKey: String) {
+        mutex.withLock {
+            if (!contains(wordKey) && !quizQueue.containsV2(wordKey)) {
+                val correctCount = words.correctCountV2(wordKey)
+                val timing = 60 * 2.0.pow(correctCount)
+
+                printlnWithTime("[$wordKey] set alarm: [$timing] minutes")
+                chrome.alarms.create(wordKey, createProps("delayInMinutes", timing))
+
+                storage.dummyUpdate()
+            }
+        }
+    }
+
     suspend fun remove(word: String) {
         clear(word)
         storage.dummyUpdate()
