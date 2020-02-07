@@ -6,25 +6,23 @@ chrome.storage.sync
 ```
 {
   "storageVersion": 2
-  "words-enja": {
-    "foo": {
+  "words: {
+    "enja:foo": {
       "translation": "フー",
       "correctCount": 3
-    }
-  },
-  "words-jaen": {
-    ...
-  },
-  "quizQueue": [
-    {
-      "language": "enja",
-      "word": "foo"
     },
+    "jaen:あああ": {
+      "translation": "aaa",
+      "correctCount": 2
+    },
+    ...
+  }
+  "quizQueue": [
+    "enja:foo"
     ...
   ],
   "quiz": {
-    "language": "enja",
-    "word": "foo",
+    "wordKey": "enja:foo",
     "choices":[ <choice1>, <choice2>, <choice3>, <choice4> ],
     "answer": 2,
     "translation": "フー"
@@ -35,18 +33,17 @@ chrome.storage.sync
 
 | Key | Value |
 |----|----|
-| words-\<srcLang>\<dstLang> | Registered words for specific src/dst language. Current available languages are srcLang=en, dstLang=ja. |
-| words-\<>\<>[\<word>].translation | Translation for the word. |
-| words-\<>\<>[\<word>].correctCount | Count of correct for its quiz. |
-| quizQueue[] | Words in queue for quiz. |
-| quizQueue[].language | Src/dst language of the word in queue. |
-| quizQueue[].word | Word in queue. |
-| quiz | Current active quiz content. If user closes browserAction without answering, this data remains even though it'll never be used. |
-| quiz.language | Src/dst language of the word. |
-| quiz[\<word>].choices | Choices provided to client. |
-| quiz[\<word>].answer | Correct answer index number [0, 4] (4 means non of the above). |
-| quiz[\<word>].translation | translation string. |
-| alarm | Dummy data for firing storage.onChange on alarm change. |
+| words | Registered words |
+| words[\<wordKey>] | A record for each word. `wordKey` format is \<srcLang>\<dstLang>:\<word> |
+| words[\<wordKey>].translation | Translation for the word specified by `wordKey` |
+| words[\<wordKey>].correctCount | Count of correct for its quiz. |
+| quizQueue[] | Queue for quiz. Each element in queue is `wordKey` |
+| quiz | Current active quiz content |
+| quiz.wordKey | `wordKey` |
+| quiz.choices | Choices provided to client |
+| quiz.answer | Correct answer index number [0, 4] (4 means "none of the above") |
+| quiz.translation | Translation |
+| alarm | Dummy data for firing storage.onChange on alarm change |
 
 # Message Design
 ## registerWord
@@ -54,9 +51,8 @@ content_script -> background
 ### request
 ```
 { "msgType": "registerWord",
-  "language": "<srcLang><dstLang>"
-  "word": <targetWordString>,
-  "translation": <targetWordTranslationString> }
+  "wordKey": "<srcLang><dstLang>:<word>"
+  "translation": <translation> }
 ```
 ### response
 none.
@@ -69,7 +65,7 @@ browser_action -> background
 ```
 ### response
 ```
-{ "word": <wordInQueue>,
+{ "wordKey": "<srcLang><dstLang>:<word>"
   "choices":[ <choice1>, <choice2>, <choice3>, <choice4> ] }
 ```
 ## answerQuiz
@@ -77,19 +73,21 @@ browser_action -> background
 ### request
 ```
 { "msgType": "answerQuiz",
-  "language": "<srcLang><dstLang>
-  "word": <wordForQuiz>,
+  "wordKey": "<srcLang><dstLang>:<word>"
   "guess": <index> }
 ```
-index range is [0, 4]
+| Key | Value |
+|----|----|
+| guess | range is [0, 4] |
 ### response
 ```
 { "result": <boolean>,
   "answer": <index>,
-  "translation": <string> }
+  "translation": <translation> }
 ```
 | Key | Value |
 |----|----|
+| answer | range is [0, 4] |
 | translation | Optional. Present only when <index> is 4. |
 ## option page related messages
 omitted
