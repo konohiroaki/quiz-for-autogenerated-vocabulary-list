@@ -1,6 +1,5 @@
 package storage
 
-import Languages
 import Util.Companion.createProps
 import Util.Companion.printlnWithTime
 
@@ -12,10 +11,7 @@ class Quiz : Storage() {
     }
 
     suspend fun setV2(wordKey: String, choices: Array<String>, idx: Int, translation: String) {
-        val quiz = createProps(
-            "language", Languages.getLangKey(wordKey), "word", Languages.getWord(wordKey),
-            "choices", choices, "answer", idx, "translation", translation
-        )
+        val quiz = createProps("wordKey", wordKey, "choices", choices, "answer", idx, "translation", translation)
         setStorage("quiz", quiz)
     }
 

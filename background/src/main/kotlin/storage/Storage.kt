@@ -7,6 +7,9 @@ import kotlin.coroutines.suspendCoroutine
 
 open class Storage {
 
+    suspend fun getVersion() = getStorage("storageVersion", 1) as Int
+    suspend fun setVersion(version: Int) = setStorage("storageVersion", version)
+
     protected suspend fun getStorage(key: String, defaultObj: dynamic): dynamic {
         val storage = suspendCoroutine<dynamic> { continuation ->
             chrome.storage.sync.get(key) { it -> continuation.resume(it) }

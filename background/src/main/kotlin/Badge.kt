@@ -14,9 +14,14 @@ class Badge(private val words: Words, private val quizQueue: QuizQueue) {
         set(badgeText)
     }
 
-    private suspend fun set(text: String) {
+    // TODO: when wordKey in queue, check if that lang word has 4 or more registration. if present, count.
+    suspend fun updateV2() {
+
+    }
+
+    private suspend fun set(badgeText: String) {
         suspendCoroutine<dynamic> { continuation ->
-            chrome.browserAction.setBadgeText(createProps("text", text)) { it -> continuation.resume(it) }
+            chrome.browserAction.setBadgeText(createProps("text", badgeText)) { it -> continuation.resume(it) }
         }
     }
 }

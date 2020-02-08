@@ -35,7 +35,7 @@ class Alarm(private val words: Words, private val quizQueue: QuizQueue) {
 
     suspend fun createV2(wordKey: String) {
         mutex.withLock {
-            if (!contains(wordKey) && !quizQueue.containsV2(wordKey)) {
+            if (!contains(wordKey) && !quizQueue.contains(wordKey)) {
                 val correctCount = words.correctCountV2(wordKey)
                 val timing = 60 * 2.0.pow(correctCount)
 

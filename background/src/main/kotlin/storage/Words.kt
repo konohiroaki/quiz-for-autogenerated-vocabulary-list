@@ -28,16 +28,15 @@ class Words : Storage() {
     }
 
     suspend fun addV2(wordKey: String, translation: String): Boolean {
-        val (langKey, word) = Languages.splitWordKey(wordKey)
         mutex.withLock {
-            val words = getWordsV2(langKey)
-            if (contains(words, word)) {
-                printlnWithTime("[$langKey:$word] ignored registered word")
+            val words = getWordsV2(null)
+            if (contains(words, wordKey)) {
+                printlnWithTime("[$wordKey] ignored registered word")
                 return false
             }
-            printlnWithTime("[$langKey:$word] register new word")
-            words[word] = createProps("translation", translation, "correctCount", 0)
-            setWordsV2(langKey, words)
+            printlnWithTime("[$wordKey] register new word")
+            words[wordKey] = createProps("translation", translation, "correctCount", 0)
+            setWords(words)
             return true
         }
     }
@@ -53,23 +52,8 @@ class Words : Storage() {
         }
     }
 
-    suspend fun removeV2(wordKey: String) {
-        val (langKey, word) = Languages.splitWordKey(wordKey)
-        mutex.withLock {
-            val words = getWordsV2(langKey)
-            if (contains(words, word)) {
-                delete(words[word])
-                setWordsV2(langKey, words)
-                printlnWithTime("[$langKey:$word] removed from words")
-            }
-        }
-    }
-
     suspend fun translation(word: String) = getWords()[word].translation as String
-    suspend fun translationV2(wordKey: String): String {
-        val (langKey, word) = Languages.splitWordKey(wordKey)
-        return getWordsV2(langKey)[word].translation as String
-    }
+    suspend fun translationV2(wordKey: String) = getWordsV2(null)[wordKey].translation as String
 
     suspend fun random(): dynamic {
         val words = getWords()
@@ -77,10 +61,12 @@ class Words : Storage() {
         return words[keys[Random.nextInt(keys.size)]]
     }
 
-    suspend fun randomV2(langKey: String): dynamic {
+    suspend fun randomV2(langKey: String?): dynamic {
         val words = getWordsV2(langKey)
         val keys = keys(words)
-        return words[keys[Random.nextInt(keys.size)]]
+        return if (keys.size != 0) {
+            words[keys[Random.nextInt(keys.size)]]
+        } else null
     }
 
     suspend fun changeTranslation(word: String, translation: String) {
@@ -92,11 +78,10 @@ class Words : Storage() {
     }
 
     suspend fun changeTranslationV2(wordKey: String, translation: String) {
-        val (langKey, word) = Languages.splitWordKey(wordKey)
         mutex.withLock {
-            val words = getWordsV2(langKey)
-            words[word].translation = translation
-            setWordsV2(langKey, words)
+            val words = getWordsV2(null)
+            words[wordKey].translation = translation
+            setWords(words)
         }
     }
 
@@ -116,50 +101,60 @@ class Words : Storage() {
     }
 
     suspend fun incrementCorrectCountV2(wordKey: String) {
-        val (langKey, word) = Languages.splitWordKey(wordKey)
         mutex.withLock {
-            val words = getWordsV2(langKey)
-            words[word].correctCount += 1
-            setWordsV2(langKey, words)
+            val words = getWordsV2(null)
+            words[wordKey].correctCount += 1
+            setWords(words)
         }
     }
 
     suspend fun quizResult(word: String) = getWords()[word].quizResult as Array<Boolean>
-    suspend fun correctCountV2(wordKey: String): Int {
-        val (langKey, word) = Languages.splitWordKey(wordKey)
-        return getWordsV2(langKey)[word].correctCount as Int
-    }
+    suspend fun correctCountV2(wordKey: String) = getWordsV2(null)[wordKey].correctCount as Int
 
     private fun keys(words: dynamic) = js("Object").keys(words) as Array<String>
     suspend fun size() = keys(getWords()).size
-    suspend fun sizeV2(langKey: String) = keys(getWordsV2(langKey)).size
+    suspend fun sizeV2(langKey: String?) = keys(getWordsV2(langKey)).size
 
     private fun contains(words: dynamic, word: String) = keys(words).contains(word)
 
     private suspend fun getWords() = getStorage("words", js("{}"))
-    private suspend fun getWordsV2(langKey: String) = getStorage("words-$langKey", js("{}"))
-    private suspend fun setWords(words: dynamic) = setStorage("words", words)
-    private suspend fun setWordsV2(langKey: String, words: dynamic) = setStorage("words-$langKey", words)
+    private suspend fun getWordsV2(langKey: String?): dynamic {
+        val words = getStorage("words", js("{}"))
+        if (langKey == null) {
+            return words
+        }
+        val filteredWords = createProps()
+        return keys(words)
+            .filter { Languages.getLangKey(it) == langKey }
+            .forEach { filteredWords[it] = words[it] }
+    }
+
+    suspend fun setWords(words: dynamic) = setStorage("words", words)
 
     suspend fun getWordsAsArray(): Array<dynamic> {
         val words = getStorage("words", js("{}"))
         return keys(words)
-            .map { arrayFormat(it, words[it].quizResult, words[it].translation) }
+            .map { arrayFormat(it, words[it].translation, words[it].quizResult) }
             .toTypedArray()
     }
 
-    suspend fun getWordsAsArrayV2(langKey: String): Array<dynamic> {
-        val words = getStorage("words-$langKey", js("{}"))
+    suspend fun getWordsAsArrayV2(langKey: String?): Array<dynamic> {
+        val words = getStorage("words", js("{}"))
         return keys(words)
+            .filter {
+                if (langKey != null) {
+                    Languages.getLangKey(it) == langKey
+                } else true
+            }
             .map { arrayFormatV2(it, words[it].translation, words[it].correctCount) }
             .toTypedArray()
     }
 
-    private fun arrayFormat(key: String, quizResult: Array<Boolean>, translation: String): dynamic {
-        return createProps("word", key, "quizResult", quizResult, "translation", translation)
+    private fun arrayFormat(word: String, translation: String, quizResult: Array<Boolean>): dynamic {
+        return createProps("word", word, "translation", translation, "quizResult", quizResult)
     }
 
-    private fun arrayFormatV2(key: String, translation: String, correctCount: Int): dynamic {
-        return createProps("word", key, "translation", translation, "correctCount", correctCount)
+    private fun arrayFormatV2(wordKey: String, translation: String, correctCount: Int): dynamic {
+        return createProps("wordKey", wordKey, "translation", translation, "correctCount", correctCount)
     }
 }

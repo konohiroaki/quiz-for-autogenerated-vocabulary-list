@@ -19,7 +19,8 @@ external val chrome: dynamic
 fun main() {
     addOptionsPageLink()
     setNextQuizButton()
-    window.onload = { prepareNextQuiz() }
+//    window.onload = { prepareNextQuiz() }
+    window.onload = { prepareNextQuizV2() }
 }
 
 fun addOptionsPageLink() {
@@ -30,7 +31,8 @@ fun addOptionsPageLink() {
 
 fun setNextQuizButton() {
     val nextButton = select<HTMLDivElement>("#go-next-quiz")
-    nextButton.addEventListener("click", { prepareNextQuiz() })
+//    nextButton.addEventListener("click", { prepareNextQuiz() })
+    nextButton.addEventListener("click", { prepareNextQuizV2() })
 }
 
 fun prepareNextQuiz() {
@@ -50,8 +52,31 @@ fun prepareNextQuiz() {
     }
 }
 
+fun prepareNextQuizV2() {
+    chrome.runtime.sendMessage(null, createProps("msgType", "requestQuiz")) { response ->
+        printlnWithTime(JSON.stringify(response))
+
+        hideNextQuizButton()
+        emptyChoices()
+        if (response.wordKey == undefined) {
+            showNoQuizMessage()
+            setWordV2("")
+        } else {
+            hideNoQuizMessage()
+            setWordV2(response.wordKey)
+            setChoicesV2(response)
+        }
+    }
+}
+
 fun setWord(word: String) {
     select<HTMLHeadingElement>("#word").innerText = word
+}
+
+// TODO: show language information somewhere.
+// TODO: wordKey can be empty string. handle it properly.
+fun setWordV2(wordKey: String) {
+    select<HTMLHeadingElement>("#word").innerText = Languages.getWord(wordKey)
 }
 
 fun emptyChoices() {
@@ -71,10 +96,10 @@ fun setChoices(response: dynamic) {
 fun setChoicesV2(response: dynamic) {
     val choices = select<HTMLDivElement>("#choices")
     repeat(CHOICE_COUNT) { idx ->
-        val choiceButton = choiceDomV2(response.langKey, response.word, response.choices[idx], idx)
+        val choiceButton = choiceDomV2(response.wordKey, response.choices[idx], idx)
         choices.appendChild(choiceButton)
     }
-    val choiceButton = choiceDomV2(response.langKey, response.word, "上記のどれでもない")
+    val choiceButton = choiceDomV2(response.wordKey, "上記のどれでもない")
     choices.appendChild(choiceButton)
 }
 
@@ -86,11 +111,11 @@ fun choiceDom(text: String, word: String, guess: Int = CHOICE_COUNT): HTMLElemen
     }
 }
 
-fun choiceDomV2(langKey: String, word: String, translation: String, guess: Int = CHOICE_COUNT): HTMLElement {
+fun choiceDomV2(wordKey: String, translation: String, guess: Int = CHOICE_COUNT): HTMLElement {
     return document.create.button(classes = "list-group-item list-group-item-action") {
         style = "outline:none;"
         +translation
-        onClickFunction = { answerQuizV2(langKey, word, guess) }
+        onClickFunction = { answerQuizV2(wordKey, guess) }
     }
 }
 
@@ -113,8 +138,8 @@ fun answerQuiz(word: String, guess: Int) {
     }
 }
 
-fun answerQuizV2(langKey: String, word: String, guess: Int) {
-    chrome.runtime.sendMessage(null, answerQuizRequestV2(langKey, word, guess)) { response ->
+fun answerQuizV2(wordKey: String, guess: Int) {
+    chrome.runtime.sendMessage(null, answerQuizRequestV2(wordKey, guess)) { response ->
         printlnWithTime("guess : $guess")
         printlnWithTime("answer: ${response.answer}")
 
@@ -140,11 +165,10 @@ fun answerQuizRequest(word: String, guess: Int): dynamic {
     )
 }
 
-fun answerQuizRequestV2(langKey: String, word: String, guess: Int): dynamic {
+fun answerQuizRequestV2(wordKey: String, guess: Int): dynamic {
     return createProps(
         "msgType", "answerQuiz",
-        "langKey", langKey,
-        "word", word,
+        "wordKey", wordKey,
         "guess", guess
     )
 }

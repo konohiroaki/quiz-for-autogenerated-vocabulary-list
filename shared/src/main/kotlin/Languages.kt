@@ -10,9 +10,9 @@ enum class Languages(val key: String) {
             Pair(wordKey.substringAfter(":"), wordKey.substringBefore(":"))
 
         fun getWordKey(langKey: String, word: String) = "$langKey:$word"
-        fun getLangKey(wordKey: String) = wordKey.substringAfter(":")
-        fun getWord(wordKey: String) = wordKey.substringBefore(":")
-        fun getSrcLanguage(langKey: String) = map[langKey.substring(0, 2)]
-        fun getDstLanguage(langKey: String) = map[langKey.substring(2, 4)]
+        fun getLangKey(wordKey: String) = wordKey.substringBefore(":")
+        fun getWord(wordKey: String) = wordKey.substringAfter(":")
+        fun getSrcLang(wordKey: String): Languages = map[wordKey.substring(0, 2)]!!
+        fun getDstLang(wordKey: String): Languages = map[wordKey.substring(2, 4)]!!
     }
 }

@@ -23,7 +23,7 @@ chrome.storage.sync
   ],
   "quiz": {
     "wordKey": "enja:foo",
-    "choices":[ <choice1>, <choice2>, <choice3>, <choice4> ],
+    "choices": [ <choice1>, <choice2>, <choice3>, <choice4> ],
     "answer": 2,
     "translation": "フー"
   },
@@ -46,42 +46,40 @@ chrome.storage.sync
 | alarm | Dummy data for firing storage.onChange on alarm change |
 
 # Message Design
-## registerWord
-content_script -> background
-### request
+## content_script
+### registerWord
+#### request
 ```
 { "msgType": "registerWord",
-  "wordKey": "<srcLang><dstLang>:<word>"
+  "wordKey": <wordKey>,
   "translation": <translation> }
 ```
-### response
-none.
 
-## requestQuiz
-browser_action -> background
-### request
+## browser_action
+### requestQuiz
+#### request
 ```
 { "msgType": "requestQuiz" }
 ```
-### response
+#### response
 ```
-{ "wordKey": "<srcLang><dstLang>:<word>"
-  "choices":[ <choice1>, <choice2>, <choice3>, <choice4> ] }
+{ "wordKey": <wordKey>
+  "choices": [ <choice1>, <choice2>, <choice3>, <choice4> ] }
 ```
-## answerQuiz
-browser_action -> background
-### request
+
+### answerQuiz
+#### request
 ```
 { "msgType": "answerQuiz",
-  "wordKey": "<srcLang><dstLang>:<word>"
+  "wordKey": <wordKey>
   "guess": <index> }
 ```
 | Key | Value |
 |----|----|
 | guess | range is [0, 4] |
-### response
+#### response
 ```
-{ "result": <boolean>,
+{ "correct": <boolean>,
   "answer": <index>,
   "translation": <translation> }
 ```
@@ -89,5 +87,65 @@ browser_action -> background
 |----|----|
 | answer | range is [0, 4] |
 | translation | Optional. Present only when <index> is 4. |
-## option page related messages
-omitted
+
+## option
+### getAllData
+#### request
+```
+{ "msgType": "getAllData" }
+```
+### response
+```
+{
+  "words": [
+    { "wordKey": <wordKey>,
+      "translation": <translation>,
+      "correctCount": <correctCount> },
+    ...
+  ],
+  "quizQueue": [ <wordKey>, <wordKey>, ... ]
+  "alarms": [
+    { "name": <alarmName>,
+      "scheduledTime": <scheduledTimeInEpochMilliseconds> },
+    ...
+  ]
+}
+```
+
+### addToQueue
+#### request
+```
+{ "msgType": "addToQueue",
+  "wordKey": "<wordKey>" }
+```
+### removeFromQueue
+#### request
+```
+{ "msgType": "removeFromQueue",
+  "wordKey": "<wordKey>" }
+```
+### addToAlarm
+#### request
+```
+{ "msgType": "addToAlarm",
+  "wordKey": "<wordKey>" }
+```
+### removeFromAlarm
+#### request
+```
+{ "msgType": "removeFromAlarm",
+  "wordKey": "<wordKey>" }
+```
+### removeFromWordList
+#### request
+```
+{ "msgType": "removeFromWordList",
+  "wordKey": "<wordKey>" }
+```
+### changeTranslation
+#### request
+```
+{ "msgType": "changeTranslation",
+  "wordKey": "<wordKey>",
+  "translation": "<newTranslation>" }
+```
