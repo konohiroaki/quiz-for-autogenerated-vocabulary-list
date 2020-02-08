@@ -6,17 +6,13 @@ import kotlin.coroutines.suspendCoroutine
 
 class Badge(private val words: Words, private val quizQueue: QuizQueue) {
 
+    // TODO: when wordKey in queue, check if that lang word has 4 or more registration. if present, count.
     suspend fun update() {
-        val wordsSize = words.size()
+        val wordsSize = words.size(null)
         val quizQueueSize = quizQueue.size()
         val badgeText = if (wordsSize >= 4 && quizQueueSize > 0) quizQueueSize.toString() else ""
 
         set(badgeText)
-    }
-
-    // TODO: when wordKey in queue, check if that lang word has 4 or more registration. if present, count.
-    suspend fun updateV2() {
-
     }
 
     private suspend fun set(badgeText: String) {

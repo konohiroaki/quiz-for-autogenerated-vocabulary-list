@@ -8,7 +8,7 @@ import org.w3c.dom.HTMLButtonElement
 fun main() {
     setWipeOutHandler()
     setUpdateHandler()
-    updatePageV2()
+    updatePage()
 }
 
 fun setWipeOutHandler() {
@@ -19,7 +19,7 @@ fun setWipeOutHandler() {
 }
 
 fun setUpdateHandler() {
-    chrome.storage.onChanged.addListener { updatePageV2() }
+    chrome.storage.onChanged.addListener { updatePage() }
 }
 
 // TODO [performance]: Only update changed part, instead of rewriting everything.
@@ -27,13 +27,6 @@ fun setUpdateHandler() {
 fun updatePage() {
     chrome.runtime.sendMessage(null, createProps("msgType", "getAllData")) { response ->
         WordList.update(response.words, response.alarms, response.quizQueue)
-        QuizQueueList.update(response.quizQueue)
-    }
-}
-
-fun updatePageV2() {
-    chrome.runtime.sendMessage(null, createProps("msgType", "getAllData")) { response ->
-        WordList.updateV2(response.words, response.alarms, response.quizQueue)
         QuizQueueList.update(response.quizQueue)
     }
 }

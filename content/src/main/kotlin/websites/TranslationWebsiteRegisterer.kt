@@ -8,20 +8,11 @@ abstract class TranslationWebsiteRegisterer {
 
     fun register() {
         if (isValidPage()) {
-//            chrome.runtime.sendMessage(null, wordRegistrationProps())
-            chrome.runtime.sendMessage(null, wordRegistrationPropsV2())
+            chrome.runtime.sendMessage(null, wordRegistrationProps())
         }
     }
 
     private fun wordRegistrationProps(): dynamic {
-        return createProps(
-            "msgType", "registerWord",
-            "word", getSearchWord(),
-            "translation", getTranslation()
-        )
-    }
-
-    private fun wordRegistrationPropsV2(): dynamic {
         return createProps(
             "msgType", "registerWord",
             "wordKey", "${Languages.getLangKey(getSrcLanguage(), getDstLanguage())}:${getSearchWord()}",
