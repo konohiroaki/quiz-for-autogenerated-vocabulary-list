@@ -50,10 +50,17 @@ fun prepareNextQuiz() {
     }
 }
 
-// TODO: show language information somewhere.
-// TODO: wordKey can be empty string. handle it properly.
 fun setWord(wordKey: String) {
-    select<HTMLHeadingElement>("#word").innerText = Languages.getWord(wordKey)
+    val (language, word) = if (wordKey.isNotBlank()) {
+        Pair(
+            "${Languages.getSrcLang(wordKey)} ➤ ${Languages.getDstLang(wordKey)}",
+            Languages.getWord(wordKey)
+        )
+    } else {
+        Pair("", "")
+    }
+    select<HTMLElement>("#language").innerText = language
+    select<HTMLHeadingElement>("#word").innerText = word
 }
 
 fun emptyChoices() {
