@@ -8,7 +8,6 @@ import storage.QuizQueue
 import storage.Words
 import kotlin.random.Random
 
-// TODO [bug]: need to require one more dstLang because we avoid target word to be added at 1/3 probability
 class Background {
 
     private val words = Words()
@@ -89,7 +88,7 @@ class Background {
     private suspend fun reorderQuizQueue(): Boolean {
         val queue = quizQueue.getQuizQueue()
         val firstAvailableIndex: Int = queue.withIndex().firstOrNull { (_, quiz) ->
-            words.getSizeForDstLang(Languages.getDstLang(quiz).key) >= CHOICE_COUNT
+            words.getSizeForDstLang(Languages.getDstLang(quiz).key) > CHOICE_COUNT
         }?.index
             ?: return false
 
