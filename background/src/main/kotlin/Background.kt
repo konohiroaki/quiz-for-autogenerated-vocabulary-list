@@ -68,10 +68,9 @@ class Background {
     }
 
     private suspend fun respondNextQuiz(response: dynamic) {
-        printlnWithTime("quiz requested")
-        printlnWithTime("quizQueue-> ${quizQueue.toJsonString()}")
-        // TODO [bug]: need to check only same dstLang
-        if (quizQueue.isEmpty() || words.size(null) < CHOICE_COUNT) {
+        printlnWithTime("quiz requested. quizQueue-> ${quizQueue.toJsonString()}")
+        val quizAvailable = reorderQuizQueue()
+        if (!quizAvailable) {
             response(js("{}"))
         } else {
             val wordKey = quizQueue.peek()!!
@@ -83,6 +82,25 @@ class Background {
         }
     }
 
+    /**
+     * @return true if quiz is available.
+     */
+    private suspend fun reorderQuizQueue(): Boolean {
+        val quizzes = quizQueue.getQuizQueue()
+        val firstAvailableIndex: Int = quizzes.withIndex().firstOrNull { (_, quiz) ->
+            words.sizeOfDstLang(Languages.getDstLang(quiz).key) >= CHOICE_COUNT
+        }?.index
+            ?: return false
+
+        val mutableQuizQueue = quizzes.toMutableList()
+        val removedQuiz = mutableQuizQueue.removeAt(firstAvailableIndex)
+        mutableQuizQueue.add(0, removedQuiz)
+        quizQueue.setQuizQueue(mutableQuizQueue.toTypedArray())
+        printlnWithTime(mutableQuizQueue)
+        return true
+    }
+
+
     private suspend fun prepareChoices(wordKey: String): Array<String> {
         val translation = words.translation(wordKey)
         val (choices, answer) = getChoices(Languages.getDstLang(wordKey), translation)
@@ -91,15 +109,14 @@ class Background {
         return choices
     }
 
-    // TODO [bug]: need to get only same dstLang choices
-    //             cannot do now because dstLang count >= 4 is not guaranteed.
     private suspend fun getChoices(dstLang: Languages, translation: String): Pair<Array<String>, Int> {
         val choices = mutableSetOf<String>()
         if (Random.nextInt(2) == 0) {
             choices.add(translation)
         }
+        // TODO [bug]: correct translation can be added in this loop. so probability is not 50%
         while (choices.size < CHOICE_COUNT) {
-            choices.add(words.random(null).translation)
+            choices.add(words.randomTranslation(dstLang.key))
         }
         val shuffledChoices = choices.toList().shuffled().toTypedArray()
         val idx = shuffledChoices.indexOf(translation)
@@ -128,7 +145,7 @@ class Background {
     }
 
     private suspend fun getAllData(response: dynamic) {
-        val words = words.getWordsAsArray(null)
+        val words = words.getWordsAsArray { true }
         val quizQueue = quizQueue.getQuizQueue()
         val alarms = alarms.getAll()
 

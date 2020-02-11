@@ -5,7 +5,6 @@ import Util.Companion.createProps
 import Util.Companion.printlnWithTime
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlin.random.Random
 
 private external fun delete(obj: dynamic): Boolean
 
@@ -29,7 +28,7 @@ class Words : Storage() {
 
     suspend fun remove(word: String) {
         mutex.withLock {
-            val words = getWords()
+            val words = getWords(null)
             if (contains(words, word)) {
                 delete(words[word])
                 setWords(words)
@@ -40,12 +39,10 @@ class Words : Storage() {
 
     suspend fun translation(wordKey: String) = getWords(null)[wordKey].translation as String
 
-    suspend fun random(langKey: String?): dynamic {
-        val words = getWords(langKey)
-        val keys = keys(words)
-        return if (keys.size != 0) {
-            words[keys[Random.nextInt(keys.size)]]
-        } else null
+    suspend fun randomTranslation(dstLang: String): String {
+        return getWordsAsArray { wordKey -> Languages.getDstLang(wordKey).key == dstLang }
+            .random()
+            .translation as String
     }
 
     suspend fun changeTranslation(wordKey: String, translation: String) {
@@ -68,10 +65,12 @@ class Words : Storage() {
 
     private fun keys(words: dynamic) = js("Object").keys(words) as Array<String>
     suspend fun size(langKey: String?) = keys(getWords(langKey)).size
+    suspend fun sizeOfDstLang(dstLang: String): Int {
+        return getWordsAsArray { wordKey -> Languages.getDstLang(wordKey).key == dstLang }.size
+    }
 
     private fun contains(words: dynamic, word: String) = keys(words).contains(word)
 
-    private suspend fun getWords() = getStorage("words", js("{}"))
     private suspend fun getWords(langKey: String?): dynamic {
         val words = getStorage("words", js("{}"))
         if (langKey == null) {
@@ -85,14 +84,10 @@ class Words : Storage() {
 
     suspend fun setWords(words: dynamic) = setStorage("words", words)
 
-    suspend fun getWordsAsArray(langKey: String?): Array<dynamic> {
+    suspend fun getWordsAsArray(filter: (word: dynamic) -> Boolean): Array<dynamic> {
         val words = getStorage("words", js("{}"))
         return keys(words)
-            .filter {
-                if (langKey != null) {
-                    Languages.getLangKey(it) == langKey
-                } else true
-            }
+            .filter(filter)
             .map { arrayFormat(it, words[it].translation, words[it].correctCount) }
             .toTypedArray()
     }
