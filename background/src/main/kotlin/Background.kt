@@ -8,6 +8,7 @@ import storage.QuizQueue
 import storage.Words
 import kotlin.random.Random
 
+// TODO [bug]: need to require one more dstLang because we avoid target word to be added at 1/3 probability
 class Background {
 
     private val words = Words()
@@ -44,7 +45,6 @@ class Background {
                     "removeFromWordList" -> removeWord(request.wordKey)
                     "changeTranslation" -> words.changeTranslation(request.wordKey, request.translation)
                     "getAllData" -> getAllData(response)
-                    "wipeOutData" -> wipeOutData()
                 }
             }
             // https://stackoverflow.com/a/20077854/6642042
@@ -54,12 +54,13 @@ class Background {
 
     private suspend fun registerWord(request: dynamic) {
         if (words.add(request.wordKey, request.translation)) {
+            badge.update()
             chrome.notifications.create(
                 "registerWord.${request.wordKey}", createProps(
                     "type", "basic",
                     "iconUrl", "icon128.png",
                     "title", "New word registered",
-                    "message", "[${request.wordKey}] -> ${request.translation}",
+                    "message", "[${request.wordKey}]: ${request.translation}",
                     "buttons", arrayOf(createProps("title", "Cancel word registration"))
                 )
             )
@@ -86,13 +87,13 @@ class Background {
      * @return true if quiz is available.
      */
     private suspend fun reorderQuizQueue(): Boolean {
-        val quizzes = quizQueue.getQuizQueue()
-        val firstAvailableIndex: Int = quizzes.withIndex().firstOrNull { (_, quiz) ->
-            words.sizeOfDstLang(Languages.getDstLang(quiz).key) >= CHOICE_COUNT
+        val queue = quizQueue.getQuizQueue()
+        val firstAvailableIndex: Int = queue.withIndex().firstOrNull { (_, quiz) ->
+            words.getSizeForDstLang(Languages.getDstLang(quiz).key) >= CHOICE_COUNT
         }?.index
             ?: return false
 
-        val mutableQuizQueue = quizzes.toMutableList()
+        val mutableQuizQueue = queue.toMutableList()
         val removedQuiz = mutableQuizQueue.removeAt(firstAvailableIndex)
         mutableQuizQueue.add(0, removedQuiz)
         quizQueue.setQuizQueue(mutableQuizQueue.toTypedArray())
@@ -102,7 +103,7 @@ class Background {
 
 
     private suspend fun prepareChoices(wordKey: String): Array<String> {
-        val translation = words.translation(wordKey)
+        val translation = words.getTranslation(wordKey)
         val (choices, answer) = getChoices(Languages.getDstLang(wordKey), translation)
 
         quiz.set(wordKey, choices, answer, translation)
@@ -111,12 +112,11 @@ class Background {
 
     private suspend fun getChoices(dstLang: Languages, translation: String): Pair<Array<String>, Int> {
         val choices = mutableSetOf<String>()
-        if (Random.nextInt(2) == 0) {
+        if (Random.nextInt(3) == 0) {
             choices.add(translation)
         }
-        // TODO [bug]: correct translation can be added in this loop. so probability is not 50%
         while (choices.size < CHOICE_COUNT) {
-            choices.add(words.randomTranslation(dstLang.key))
+            choices.add(words.getRandomTranslation(dstLang.key, translation))
         }
         val shuffledChoices = choices.toList().shuffled().toTypedArray()
         val idx = shuffledChoices.indexOf(translation)
@@ -175,10 +175,6 @@ class Background {
             badge.update()
             printlnWithTime("[$word] added in queue")
         }
-    }
-
-    private suspend fun wipeOutData() {
-        chrome.alarms.clearAll { chrome.storage.sync.clear { GlobalScope.launch { badge.update() } } }
     }
 
     private fun setAlarmHandler() {

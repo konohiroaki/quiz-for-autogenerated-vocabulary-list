@@ -14,7 +14,7 @@ class Words : Storage() {
 
     suspend fun add(wordKey: String, translation: String): Boolean {
         mutex.withLock {
-            val words = getWords(null)
+            val words = getWords()
             if (contains(words, wordKey)) {
                 printlnWithTime("[$wordKey] ignored registered word")
                 return false
@@ -28,7 +28,7 @@ class Words : Storage() {
 
     suspend fun remove(word: String) {
         mutex.withLock {
-            val words = getWords(null)
+            val words = getWords()
             if (contains(words, word)) {
                 delete(words[word])
                 setWords(words)
@@ -37,17 +37,18 @@ class Words : Storage() {
         }
     }
 
-    suspend fun translation(wordKey: String) = getWords(null)[wordKey].translation as String
+    suspend fun getTranslation(wordKey: String) = getWords()[wordKey].translation as String
 
-    suspend fun randomTranslation(dstLang: String): String {
+    suspend fun getRandomTranslation(dstLang: String, filterOutTranslation: String): String {
         return getWordsAsArray { wordKey -> Languages.getDstLang(wordKey).key == dstLang }
+            .filter { word -> word.translation != filterOutTranslation }
             .random()
             .translation as String
     }
 
     suspend fun changeTranslation(wordKey: String, translation: String) {
         mutex.withLock {
-            val words = getWords(null)
+            val words = getWords()
             words[wordKey].translation = translation
             setWords(words)
         }
@@ -55,32 +56,22 @@ class Words : Storage() {
 
     suspend fun incrementCorrectCount(wordKey: String) {
         mutex.withLock {
-            val words = getWords(null)
+            val words = getWords()
             words[wordKey].correctCount += 1
             setWords(words)
         }
     }
 
-    suspend fun correctCount(wordKey: String) = getWords(null)[wordKey].correctCount as Int
+    suspend fun getCorrectCount(wordKey: String) = getWords()[wordKey].correctCount as Int
 
-    private fun keys(words: dynamic) = js("Object").keys(words) as Array<String>
-    suspend fun size(langKey: String?) = keys(getWords(langKey)).size
-    suspend fun sizeOfDstLang(dstLang: String): Int {
+    suspend fun getSizeForDstLang(dstLang: String): Int {
         return getWordsAsArray { wordKey -> Languages.getDstLang(wordKey).key == dstLang }.size
     }
 
     private fun contains(words: dynamic, word: String) = keys(words).contains(word)
+    private fun keys(words: dynamic) = js("Object").keys(words) as Array<String>
 
-    private suspend fun getWords(langKey: String?): dynamic {
-        val words = getStorage("words", js("{}"))
-        if (langKey == null) {
-            return words
-        }
-        val filteredWords = createProps()
-        return keys(words)
-            .filter { Languages.getLangKey(it) == langKey }
-            .forEach { filteredWords[it] = words[it] }
-    }
+    private suspend fun getWords(): dynamic = getStorage("words", js("{}"))
 
     suspend fun setWords(words: dynamic) = setStorage("words", words)
 
@@ -88,11 +79,9 @@ class Words : Storage() {
         val words = getStorage("words", js("{}"))
         return keys(words)
             .filter(filter)
-            .map { arrayFormat(it, words[it].translation, words[it].correctCount) }
+            .map {
+                createProps("wordKey", it, "translation", words[it].translation, "correctCount", words[it].correctCount)
+            }
             .toTypedArray()
-    }
-
-    private fun arrayFormat(wordKey: String, translation: String, correctCount: Int): dynamic {
-        return createProps("wordKey", wordKey, "translation", translation, "correctCount", correctCount)
     }
 }

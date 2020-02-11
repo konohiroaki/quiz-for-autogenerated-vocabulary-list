@@ -17,7 +17,7 @@ class Alarm(private val words: Words, private val quizQueue: QuizQueue) {
     suspend fun create(wordKey: String) {
         mutex.withLock {
             if (!contains(wordKey) && !quizQueue.contains(wordKey)) {
-                val correctCount = words.correctCount(wordKey)
+                val correctCount = words.getCorrectCount(wordKey)
                 val timing = 60 * 2.0.pow(correctCount)
 
                 printlnWithTime("[$wordKey] set alarm: [$timing] minutes")
