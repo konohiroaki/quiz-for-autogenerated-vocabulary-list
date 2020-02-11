@@ -1,3 +1,4 @@
+import Util.Companion.CHOICE_COUNT
 import Util.Companion.createProps
 import storage.QuizQueue
 import storage.Words
@@ -6,11 +7,15 @@ import kotlin.coroutines.suspendCoroutine
 
 class Badge(private val words: Words, private val quizQueue: QuizQueue) {
 
-    // TODO: when wordKey in queue, check if that lang word has 4 or more registration. if present, count.
     suspend fun update() {
-        val wordsSize = words.size(null)
-        val quizQueueSize = quizQueue.size()
-        val badgeText = if (wordsSize >= 4 && quizQueueSize > 0) quizQueueSize.toString() else ""
+        val availableDstLangList = words.getWordsAsArray { true }
+            .groupBy { word -> Languages.getDstLang(word.wordKey) }
+            .filter { map -> map.value.size >= CHOICE_COUNT }
+            .map { map -> map.key.key }
+        val availableQuizList = quizQueue.getQuizQueue()
+            .filter { wordKey -> availableDstLangList.contains(Languages.getDstLang(wordKey).key) }
+
+        val badgeText = if (availableQuizList.isNotEmpty()) availableQuizList.size.toString() else ""
 
         set(badgeText)
     }
