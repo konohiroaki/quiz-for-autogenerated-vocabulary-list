@@ -30,24 +30,30 @@ class WordList {
         private fun DIV.wordListItem(word: dynamic, alarm: dynamic, inQueue: Boolean) {
             div("list-group-item list-group-item-action") {
                 printlnWithTime(JSON.stringify(word))
-                titleAndStatus(word.wordKey, alarm, inQueue)
+                languageAndStatus(word.wordKey, alarm, inQueue)
+                titleAndCorrectCount(word.wordKey, word.correctCount)
                 div { +(word.translation as String) }
-                div { +("correctCount: ${word.correctCount}") }
                 buttonList(word.wordKey)
                 changeTranslation(word.wordKey)
             }
         }
 
-        private fun DIV.titleAndStatus(wordKey: String, alarm: dynamic, inQueue: Boolean) {
+        private fun DIV.languageAndStatus(wordKey: String, alarm: dynamic, inQueue: Boolean) {
             val status = when {
                 alarm != null -> "Enqueue at ${Date(alarm.scheduledTime as Double).toLocaleString()}"
                 inQueue -> "In Queue"
                 else -> "Not active"
             }
-            printlnWithTime(wordKey)
             div("d-flex w-100 justify-content-between") {
-                h5 { +wordKey }
+                small { +"${Languages.getSrcLang(wordKey)} ➤ ${Languages.getDstLang(wordKey)}" }
                 small { +status }
+            }
+        }
+
+        private fun DIV.titleAndCorrectCount(wordKey: String, correctCount: Int) {
+            div("d-flex w-100 justify-content-between") {
+                h5 { +(Languages.getWord(wordKey)) }
+                div { +("☑ $correctCount") }
             }
         }
 
