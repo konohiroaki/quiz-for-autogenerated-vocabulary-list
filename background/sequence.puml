@@ -6,16 +6,16 @@ participant storage
 participant alarm
 
 content->background: register word
-background->storage: register word in \nstorage.words-<srcLang><dstLang>
+background->storage: register word in storage.words
 background->alarm: set alarm for quiz time
 ...wait for alarm time...
 alarm-> background: ring alarm
 background->storage: add to storage.quizQueue
-background->browser: badge shows number of ready quiz
+background->browser: badge shows number of available quizzes
 ...user opens popup...
 browser->background: request quiz
-background->browser: respond next quiz
-...user answers quiz...
+background->browser: respond available quiz
+...user answers to the quiz...
 browser->background: send user's guess
 background->storage: drop first element in storage.quizQueue
 background->browser: update badge
