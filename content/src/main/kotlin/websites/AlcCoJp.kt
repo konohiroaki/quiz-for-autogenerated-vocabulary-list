@@ -7,24 +7,35 @@ import kotlin.browser.document
 
 class AlcCoJp : TranslationWebsiteRegisterer() {
 
-    override fun isValidPage() = isSearchWordPresent() && isEnglish2Japanese()
+    override fun isValidPage() = isSearchWordPresent() && (isEnglish2Japanese() || isJapanese2English())
     private fun isSearchWordPresent() = document.querySelector("#searchWord") != null
     private fun isEnglish2Japanese() =
         (document.querySelector("#f1 > input[name=dk]") as HTMLInputElement).value == "EJ"
 
-    override fun getSrcLanguage() = ENGLISH
-    override fun getDstLanguage() = JAPANESE
+    private fun isJapanese2English() =
+        (document.querySelector("#f1 > input[name=dk]") as HTMLInputElement).value == "JE"
+
+    override fun getSrcLanguage() = if (isEnglish2Japanese()) ENGLISH else JAPANESE
+    override fun getDstLanguage() = if (isEnglish2Japanese()) JAPANESE else ENGLISH
 
     override fun getSearchWord() = (document.querySelector("#searchWord") as HTMLSpanElement).innerText
 
     override fun getTranslation(): String {
         val div = document.querySelector("#resultsList > ul > li > div") as HTMLDivElement
-        return if (div.firstChild!!.nodeName == "#text") { // no wordclass
-            div.innerText
-        } else if (div.querySelector("ol > li") == null) { // no list of translation for wordclass
-            (div.querySelector("ol") as HTMLOListElement).innerText
+        return if (isEnglish2Japanese()) {
+            if (div.firstChild!!.nodeName == "#text") { // no wordclass
+                div.innerText
+            } else if (div.querySelector("ol > li") == null) { // no list of translation for wordclass
+                (div.querySelector("ol") as HTMLOListElement).innerText
+            } else {
+                (div.querySelector("ol > li") as HTMLLIElement).innerText
+            }.substringBefore("\n").substringBefore("◆")
         } else {
-            (div.querySelector("ol > li") as HTMLLIElement).innerText
-        }.substringBefore("\n").substringBefore("◆")
+            if (div.querySelector("li") != null) {
+                (div.querySelector("li:first-child") as HTMLLIElement).innerText
+            } else {
+                (div.querySelector("ol") as HTMLOListElement).innerText
+            }
+        }
     }
 }
