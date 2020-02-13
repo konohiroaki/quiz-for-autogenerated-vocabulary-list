@@ -15,14 +15,13 @@ abstract class TranslationWebsiteRegisterer {
     private fun wordRegistrationProps(): dynamic {
         return createProps(
             "msgType", "registerWord",
-            "wordKey", "${Languages.getLangKey(getSrcLanguage(), getDstLanguage())}:${getSearchWord()}",
+            "wordKey", "${Languages.getLangKey(getLanguage())}:${getSearchWord()}",
             "translation", getTranslation()
         )
     }
 
     protected abstract fun isValidPage(): Boolean
-    protected abstract fun getSrcLanguage(): Languages
-    protected abstract fun getDstLanguage(): Languages
+    protected abstract fun getLanguage(): Pair<Languages, Languages>
     protected abstract fun getSearchWord(): String
     protected abstract fun getTranslation(): String
 }

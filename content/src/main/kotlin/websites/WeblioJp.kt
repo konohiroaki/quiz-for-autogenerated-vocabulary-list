@@ -1,5 +1,6 @@
 package websites
 
+import Languages
 import Languages.ENGLISH
 import Languages.JAPANESE
 import org.w3c.dom.HTMLSpanElement
@@ -11,8 +12,9 @@ class WeblioJp : TranslationWebsiteRegisterer() {
     override fun isValidPage() = isEnglish2Japanese()
     private fun isEnglish2Japanese() = document.querySelector("#summary .ej") != null
 
-    override fun getSrcLanguage() = ENGLISH
-    override fun getDstLanguage() = JAPANESE
+    override fun getLanguage(): Pair<Languages, Languages> {
+        return Pair(ENGLISH, JAPANESE)
+    }
 
     override fun getSearchWord(): String {
         return (document.querySelector("#h1Query") as HTMLSpanElement).innerText
