@@ -9,11 +9,12 @@ import kotlin.browser.document
 
 class WeblioJp : TranslationWebsiteRegisterer() {
 
-    override fun isValidPage() = isEnglish2Japanese()
-    private fun isEnglish2Japanese() = document.querySelector("#summary .ej") != null
+    override fun isValidPage() = isEnglish2Japanese() || isJapanese2English()
+    private fun isEnglish2Japanese() = document.querySelector("#summary td.ej") != null
+    private fun isJapanese2English() = document.querySelector("#summary td.je") != null
 
     override fun getLanguage(): Pair<Languages, Languages> {
-        return Pair(ENGLISH, JAPANESE)
+        return if (isEnglish2Japanese()) Pair(ENGLISH, JAPANESE) else Pair(JAPANESE, ENGLISH)
     }
 
     override fun getSearchWord(): String {
@@ -21,6 +22,10 @@ class WeblioJp : TranslationWebsiteRegisterer() {
     }
 
     override fun getTranslation(): String {
-        return (document.querySelector("#summary td.ej") as HTMLTableCellElement).firstChild!!.textContent!!
+        return if (isEnglish2Japanese()) {
+            (document.querySelector("#summary td.ej") as HTMLTableCellElement).innerText
+        } else {
+            (document.querySelector("#summary td.je") as HTMLTableCellElement).innerText
+        }
     }
 }

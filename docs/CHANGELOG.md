@@ -2,6 +2,8 @@
 
 ## [2.0.0] - 2020-02-??
 - (#4) Support arbitrary language to arbitrary language instead of only English to Japanese
+  - Support Japanese to English on alc.co.jp
+  - Support Japanese to English on ejje.weblio.jp
 - "None of the above" probability was [less than 1/2], but now it's [always 1/3]
 - Remove wipe-out functionality
 - (#11) Update badge text on word registration timing when necessary
