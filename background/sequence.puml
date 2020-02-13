@@ -11,15 +11,15 @@ background->alarm: set alarm for quiz time
 ...wait for alarm time...
 alarm-> background: ring alarm
 background->storage: add to storage.quizQueue
-background->browser: badge shows number below\n[if (storage.words.size >= 4) storage.quizQueue.size, else 0]
+background->browser: badge shows number of available quizzes
 ...user opens popup...
 browser->background: request quiz
-background->browser: respond next quiz
-...user answers quiz...
+background->browser: respond available quiz
+...user answers to the quiz...
 browser->background: send user's guess
 background->storage: drop first element in storage.quizQueue
 background->browser: update badge
-background->storage: check answer &\nadd quiz result in storage.words[word].quizResult
+background->storage: check answer &\nincrement corresponding correctCount
 background->alarm: set alarm again for the word
 background->browser: respond result and answer
 ...user press next quiz button...

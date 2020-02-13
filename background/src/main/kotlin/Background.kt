@@ -8,11 +8,6 @@ import storage.QuizQueue
 import storage.Words
 import kotlin.random.Random
 
-fun main() {
-    printlnWithTime("extension loaded")
-    Background()
-}
-
 class Background {
 
     private val words = Words()
@@ -42,14 +37,13 @@ class Background {
                     "answerQuiz" -> handleQuizAnswer(request, response)
 
                     // Intended for Option page
-                    "addToQueue" -> addToQueue(request.word)
-                    "removeFromQueue" -> removeWordFromQueue(request.word)
-                    "addToAlarm" -> alarms.create(request.word)
-                    "removeFromAlarm" -> alarms.remove(request.word)
-                    "removeFromWordList" -> removeWord(request.word)
-                    "changeTranslation" -> words.changeTranslation(request.word, request.translation)
+                    "addToQueue" -> addToQueue(request.wordKey)
+                    "removeFromQueue" -> removeWordFromQueue(request.wordKey)
+                    "addToAlarm" -> alarms.create(request.wordKey)
+                    "removeFromAlarm" -> alarms.remove(request.wordKey)
+                    "removeFromWordList" -> removeWord(request.wordKey)
+                    "changeTranslation" -> words.changeTranslation(request.wordKey, request.translation)
                     "getAllData" -> getAllData(response)
-                    "wipeOutData" -> wipeOutData()
                 }
             }
             // https://stackoverflow.com/a/20077854/6642042
@@ -58,77 +52,99 @@ class Background {
     }
 
     private suspend fun registerWord(request: dynamic) {
-        if (words.add(request.word, request.translation)) {
+        if (words.add(request.wordKey, request.translation)) {
+            badge.update()
             chrome.notifications.create(
-                "registerWord.${request.word}", createProps(
+                "registerWord.${request.wordKey}", createProps(
                     "type", "basic",
                     "iconUrl", "icon128.png",
                     "title", "New word registered",
-                    "message", "[${request.word}] -> ${request.translation}",
+                    "message", "[${request.wordKey}]: ${request.translation}",
                     "buttons", arrayOf(createProps("title", "Cancel word registration"))
                 )
             )
-            alarms.create(request.word)
+            alarms.create(request.wordKey)
         }
     }
 
     private suspend fun respondNextQuiz(response: dynamic) {
-        printlnWithTime("quiz requested")
-        printlnWithTime("quizQueue-> ${quizQueue.toJsonString()}")
-        if (quizQueue.isEmpty() || words.size() < CHOICE_COUNT) {
+        printlnWithTime("quiz requested. quizQueue-> ${quizQueue.toJsonString()}")
+        val quizAvailable = reorderQuizQueue()
+        if (!quizAvailable) {
             response(js("{}"))
         } else {
-            val word = quizQueue.peek()!!
-            printlnWithTime("[$word] selected for quiz")
+            val wordKey = quizQueue.peek()!!
+            printlnWithTime("[$wordKey] selected for quiz")
 
-            val choices = prepareChoices(word)
-            response(createProps("word", word, "choices", choices))
-            printlnWithTime("[$word] quiz choices: [$choices]")
+            val choices = prepareChoices(wordKey)
+            response(createProps("wordKey", wordKey, "choices", choices))
+            printlnWithTime("[$wordKey] quiz choices: [$choices]")
         }
     }
 
-    private suspend fun prepareChoices(word: String): Array<String> {
-        val translation = words.translation(word)
-        val choices = getChoices(translation)
-        val idx = choices.indexOf(translation)
+    /**
+     * @return true if quiz is available.
+     */
+    private suspend fun reorderQuizQueue(): Boolean {
+        val queue = quizQueue.getQuizQueue()
+        val firstAvailableIndex: Int = queue.withIndex().firstOrNull { (_, quiz) ->
+            words.getSizeForDstLang(Languages.getDstLang(quiz).key) > CHOICE_COUNT
+        }?.index
+            ?: return false
 
-        quiz.set(word, choices, if (idx != -1) idx else CHOICE_COUNT, translation)
+        val mutableQuizQueue = queue.toMutableList()
+        val removedQuiz = mutableQuizQueue.removeAt(firstAvailableIndex)
+        mutableQuizQueue.add(0, removedQuiz)
+        quizQueue.setQuizQueue(mutableQuizQueue.toTypedArray())
+        printlnWithTime(mutableQuizQueue)
+        return true
+    }
+
+
+    private suspend fun prepareChoices(wordKey: String): Array<String> {
+        val translation = words.getTranslation(wordKey)
+        val (choices, answer) = getChoices(Languages.getDstLang(wordKey), translation)
+
+        quiz.set(wordKey, choices, answer, translation)
         return choices
     }
 
-    private suspend fun getChoices(translation: String): Array<String> {
+    private suspend fun getChoices(dstLang: Languages, translation: String): Pair<Array<String>, Int> {
         val choices = mutableSetOf<String>()
-        if (Random.nextInt(2) == 0) {
+        if (Random.nextInt(5) == 0) {
             choices.add(translation)
         }
         while (choices.size < CHOICE_COUNT) {
-            choices.add(words.random().translation)
+            choices.add(words.getRandomTranslation(dstLang.key, translation))
         }
-        return choices.toList().shuffled().toTypedArray()
+        val shuffledChoices = choices.toList().shuffled().toTypedArray()
+        val idx = shuffledChoices.indexOf(translation)
+        val answer = if (idx != -1) idx else CHOICE_COUNT
+        return Pair(shuffledChoices, answer)
     }
 
     // TODO [bug]: Do proper mutex. This can receive multiple "answerQuiz" when it's clicked very fast.
     //             Maybe same countermeasure for CSRF (create token for each quiz)
     private suspend fun handleQuizAnswer(request: dynamic, response: dynamic) {
         quizQueue.dequeue()
-        val quizWord = quiz.get(request.word)
-        val result = quizWord.answer == request.guess
+        val quizWord = quiz.get()
+        val correct = quizWord.answer == request.guess
 
         val res = if (quizWord.answer != CHOICE_COUNT) {
-            createProps("result", result, "answer", quizWord.answer)
+            createProps("correct", correct, "answer", quizWord.answer)
         } else {
-            createProps("result", result, "answer", quizWord.answer, "translation", quizWord.translation)
+            createProps("correct", correct, "answer", quizWord.answer, "translation", quizWord.translation)
         }
         response(res)
 
         badge.update()
-        words.addQuizResult(request.word, result)
-        alarms.create(request.word)
+        if (correct) words.incrementCorrectCount(request.wordKey)
+        alarms.create(request.wordKey)
         quiz.clear()
     }
 
     private suspend fun getAllData(response: dynamic) {
-        val words = words.getWordsAsArray()
+        val words = words.getWordsAsArray { true }
         val quizQueue = quizQueue.getQuizQueue()
         val alarms = alarms.getAll()
 
@@ -158,10 +174,6 @@ class Background {
             badge.update()
             printlnWithTime("[$word] added in queue")
         }
-    }
-
-    private suspend fun wipeOutData() {
-        chrome.alarms.clearAll { chrome.storage.sync.clear { GlobalScope.launch { badge.update() } } }
     }
 
     private fun setAlarmHandler() {

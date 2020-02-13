@@ -5,79 +5,147 @@
 chrome.storage.sync
 ```
 {
-  "words": {
-    "foo": {
-      "translation":  "フー",
-      "quizResult": [ true, false, true, true ]
+  "storageVersion": 2
+  "words: {
+    "enja:foo": {
+      "translation": "フー",
+      "correctCount": 3
     },
-    "bar": {
-      "translation":  "バー",
-      "quizResult": [ true, false, true, false ]
-    }
-  },
-  "quizQueue": [ "foo", "bar" ],
+    "jaen:あああ": {
+      "translation": "aaa",
+      "correctCount": 2
+    },
+    ...
+  }
+  "quizQueue": [
+    "enja:foo"
+    ...
+  ],
   "quiz": {
-    "foo": {
-      "choices":[ <choice1>, <choice2>, <choice3>, <choice4> ],
-      "answer": 2,
-      "translation": "フー"
-    }
+    "wordKey": "enja:foo",
+    "choices": [ <choice1>, <choice2>, <choice3>, <choice4> ],
+    "answer": 2,
+    "translation": "フー"
   },
   "alarm": { "dummy": 12345 }
 }
 ```
+
 | Key | Value |
 |----|----|
-| words | registered words. |
-| words[key].translation | translation for registered word. |
-| words[key].quizResult | array of boolean for history of quiz results. |
-| quizQueue | words in queue for quiz. |
-| quiz | current active quiz content. if user closes browserAction without answering, this data remains even though it'll never be used. |
-| quiz[key].choices | choices provided to client. |
-| quiz[key].answer | correct answer index number [0, 4] (4 means non of the above). |
-| quiz[key].translation | translation string. |
-| alarm | dummy data for firing storage.onChange on alarm change. |
+| words | Registered words |
+| words[\<wordKey>] | A record for each word. `wordKey` format is \<srcLang>\<dstLang>:\<word> |
+| words[\<wordKey>].translation | Translation for the word specified by `wordKey` |
+| words[\<wordKey>].correctCount | Count of correct for its quiz. |
+| quizQueue[] | Queue for quiz. Each element in queue is `wordKey` |
+| quiz | Current active quiz content |
+| quiz.wordKey | `wordKey` |
+| quiz.choices | Choices provided to client |
+| quiz.answer | Correct answer index number [0, 4] (4 means "none of the above") |
+| quiz.translation | Translation |
+| alarm | Dummy data for firing storage.onChange on alarm change |
 
 # Message Design
-## registerWord
-content_script -> background
-### request
+## content_script
+### registerWord
+#### request
 ```
 { "msgType": "registerWord",
-  "word": <targetWordString>,
-  "translation": <targetWordTranslationString> }
+  "wordKey": <wordKey>,
+  "translation": <translation> }
 ```
-### response
-none.
 
-## requestQuiz
-browser_action -> background
-### request
+## browser_action
+### requestQuiz
+#### request
 ```
 { "msgType": "requestQuiz" }
 ```
-### response
+#### response
 ```
-{ "word": <wordInQueue>,
-  "choices":[ <choice1>, <choice2>, <choice3>, <choice4> ] }
+{ "wordKey": <wordKey>
+  "choices": [ <choice1>, <choice2>, <choice3>, <choice4> ] }
 ```
-## answerQuiz
-browser_action -> background
-### request
+
+### answerQuiz
+#### request
 ```
 { "msgType": "answerQuiz",
-  "word": <wordForQuiz>,
+  "wordKey": <wordKey>
   "guess": <index> }
-```
-index range is [0, 4]
-### response
-```
-{ "result": <boolean>,
-  "answer": <index>,
-  "translation": <string> }
 ```
 | Key | Value |
 |----|----|
+| guess | range is [0, 4] |
+#### response
+```
+{ "correct": <boolean>,
+  "answer": <index>,
+  "translation": <translation> }
+```
+| Key | Value |
+|----|----|
+| answer | range is [0, 4] |
 | translation | Optional. Present only when <index> is 4. |
-## option page related messages
-omitted
+
+## option
+### getAllData
+#### request
+```
+{ "msgType": "getAllData" }
+```
+### response
+```
+{
+  "words": [
+    { "wordKey": <wordKey>,
+      "translation": <translation>,
+      "correctCount": <correctCount> },
+    ...
+  ],
+  "quizQueue": [ <wordKey>, <wordKey>, ... ]
+  "alarms": [
+    { "name": <alarmName>,
+      "scheduledTime": <scheduledTimeInEpochMilliseconds> },
+    ...
+  ]
+}
+```
+
+### addToQueue
+#### request
+```
+{ "msgType": "addToQueue",
+  "wordKey": "<wordKey>" }
+```
+### removeFromQueue
+#### request
+```
+{ "msgType": "removeFromQueue",
+  "wordKey": "<wordKey>" }
+```
+### addToAlarm
+#### request
+```
+{ "msgType": "addToAlarm",
+  "wordKey": "<wordKey>" }
+```
+### removeFromAlarm
+#### request
+```
+{ "msgType": "removeFromAlarm",
+  "wordKey": "<wordKey>" }
+```
+### removeFromWordList
+#### request
+```
+{ "msgType": "removeFromWordList",
+  "wordKey": "<wordKey>" }
+```
+### changeTranslation
+#### request
+```
+{ "msgType": "changeTranslation",
+  "wordKey": "<wordKey>",
+  "translation": "<newTranslation>" }
+```

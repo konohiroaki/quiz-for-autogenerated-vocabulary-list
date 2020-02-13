@@ -14,19 +14,14 @@ class Alarm(private val words: Words, private val quizQueue: QuizQueue) {
     private val mutex = Mutex()
     private val storage = AlarmStorage()
 
-    suspend fun create(word: String) {
+    suspend fun create(wordKey: String) {
         mutex.withLock {
-            if (!contains(word) && !quizQueue.contains(word)) {
-                val quizResult = words.quizResult(word)
-                val size = quizResult.filter { it }.size
-                val timing = 60 * 2.0.pow(size)
+            if (!contains(wordKey) && !quizQueue.contains(wordKey)) {
+                val correctCount = words.getCorrectCount(wordKey)
+                val timing = 60 * 2.0.pow(correctCount)
 
-                printlnWithTime("[$word] set alarm: [$timing] minutes")
-                chrome.alarms.create(word, createProps("delayInMinutes", timing))
-
-                // for development.
-//                printlnWithTime("[$word] set alarm: [${5 * (size + 1)}] seconds")
-//                chrome.alarms.create(word, createProps("when", Date.now() + 5000 * (size + 1)))
+                printlnWithTime("[$wordKey] set alarm: [$timing] minutes")
+                chrome.alarms.create(wordKey, createProps("delayInMinutes", timing))
 
                 storage.dummyUpdate()
             }

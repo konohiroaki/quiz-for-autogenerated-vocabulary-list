@@ -39,11 +39,12 @@ class QuizQueue : Storage() {
     }
 
     suspend fun contains(word: String) = getQuizQueue().contains(word)
+
     suspend fun size() = getQuizQueue().size
     suspend fun toJsonString() = JSON.stringify(getQuizQueue())
 
     suspend fun isEmpty() = getQuizQueue().isEmpty()
 
     suspend fun getQuizQueue(): Array<String> = getStorage("quizQueue", arrayOf<String>())
-    private suspend fun setQuizQueue(value: dynamic) = setStorage("quizQueue", value)
+    suspend fun setQuizQueue(value: dynamic) = setStorage("quizQueue", value)
 }

@@ -39,18 +39,27 @@ fun prepareNextQuiz() {
 
         hideNextQuizButton()
         emptyChoices()
-        if (response.word == undefined) {
+        if (response.wordKey == undefined) {
             showNoQuizMessage()
             setWord("")
         } else {
             hideNoQuizMessage()
-            setWord(response.word)
+            setWord(response.wordKey)
             setChoices(response)
         }
     }
 }
 
-fun setWord(word: String) {
+fun setWord(wordKey: String) {
+    val (language, word) = if (wordKey.isNotBlank()) {
+        Pair(
+            "${Languages.getSrcLang(wordKey)} ➤ ${Languages.getDstLang(wordKey)}",
+            Languages.getWord(wordKey)
+        )
+    } else {
+        Pair("", "")
+    }
+    select<HTMLElement>("#language").innerText = language
     select<HTMLHeadingElement>("#word").innerText = word
 }
 
@@ -61,24 +70,25 @@ fun emptyChoices() {
 fun setChoices(response: dynamic) {
     val choices = select<HTMLDivElement>("#choices")
     repeat(CHOICE_COUNT) { idx ->
-        val choiceButton = choiceDom(response.choices[idx], response.word, idx)
+        val choiceButton = choiceDom(response.wordKey, response.choices[idx], idx)
         choices.appendChild(choiceButton)
     }
-    val choiceButton = choiceDom("上記のどれでもない", response.word)
+    // TODO: show in dst language.
+    val choiceButton = choiceDom(response.wordKey, "上記のどれでもない")
     choices.appendChild(choiceButton)
 }
 
-fun choiceDom(text: String, word: String, guess: Int = CHOICE_COUNT): HTMLElement {
+fun choiceDom(wordKey: String, translation: String, guess: Int = CHOICE_COUNT): HTMLElement {
     return document.create.button(classes = "list-group-item list-group-item-action") {
         style = "outline:none;"
-        +text
-        onClickFunction = { answerQuiz(word, guess) }
+        +translation
+        onClickFunction = { answerQuiz(wordKey, guess) }
     }
 }
 
-fun answerQuiz(word: String, guess: Int) {
-    chrome.runtime.sendMessage(null, answerQuizRequest(word, guess)) { response ->
-        printlnWithTime("guess  : $guess")
+fun answerQuiz(wordKey: String, guess: Int) {
+    chrome.runtime.sendMessage(null, answerQuizRequest(wordKey, guess)) { response ->
+        printlnWithTime("guess : $guess")
         printlnWithTime("answer: ${response.answer}")
 
         val choices = selectAll<HTMLButtonElement>("#choices > button")
@@ -95,10 +105,10 @@ fun answerQuiz(word: String, guess: Int) {
     }
 }
 
-fun answerQuizRequest(word: String, guess: Int): dynamic {
+fun answerQuizRequest(wordKey: String, guess: Int): dynamic {
     return createProps(
         "msgType", "answerQuiz",
-        "word", word,
+        "wordKey", wordKey,
         "guess", guess
     )
 }
@@ -116,4 +126,3 @@ fun showNextQuizButton() {
 }
 
 fun hideNextQuizButton() = select<HTMLDivElement>("#go-next-quiz").setAttribute("style", "display:none")
-

@@ -1,10 +1,10 @@
 package storage
 
+import Languages
 import Util.Companion.createProps
 import Util.Companion.printlnWithTime
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlin.random.Random
 
 private external fun delete(obj: dynamic): Boolean
 
@@ -12,15 +12,15 @@ class Words : Storage() {
 
     private val mutex = Mutex()
 
-    suspend fun add(word: String, translation: String): Boolean {
+    suspend fun add(wordKey: String, translation: String): Boolean {
         mutex.withLock {
             val words = getWords()
-            if (contains(words, word)) {
-                printlnWithTime("[${word}] ignored registered word")
+            if (contains(words, wordKey)) {
+                printlnWithTime("[$wordKey] ignored registered word")
                 return false
             }
-            printlnWithTime("[${word}] register new word")
-            words[word] = createProps("translation", translation, "quizResult", arrayOf<Boolean>())
+            printlnWithTime("[$wordKey] register new word")
+            words[wordKey] = createProps("translation", translation, "correctCount", 0)
             setWords(words)
             return true
         }
@@ -37,59 +37,51 @@ class Words : Storage() {
         }
     }
 
-    suspend fun translation(word: String) = getWords()[word].translation as String
-    suspend fun random(): dynamic {
-        val words = getWords()
-        val keys = keys(words)
-        return words[keys[Random.nextInt(keys.size)]]
+    suspend fun getTranslation(wordKey: String) = getWords()[wordKey].translation as String
+
+    suspend fun getRandomTranslation(dstLang: String, filterOutTranslation: String): String {
+        return getWordsAsArray { wordKey -> Languages.getDstLang(wordKey).key == dstLang }
+            .filter { word -> word.translation != filterOutTranslation }
+            .random()
+            .translation as String
     }
 
-    suspend fun changeTranslation(word: String, translation: String) {
+    suspend fun changeTranslation(wordKey: String, translation: String) {
         mutex.withLock {
             val words = getWords()
-            words[word].translation = translation
+            words[wordKey].translation = translation
             setWords(words)
         }
     }
 
-    suspend fun addQuizResult(word: String, result: Boolean) {
+    suspend fun incrementCorrectCount(wordKey: String) {
         mutex.withLock {
             val words = getWords()
-            printlnWithTime("[$word] quiz result: $result")
-            words[word].quizResult = getNewQuizResultArray(words, word, result)
+            words[wordKey].correctCount += 1
             setWords(words)
         }
     }
 
-    private fun getNewQuizResultArray(words: dynamic, word: String, result: Boolean): Array<Boolean> {
-        val list = (words[word].quizResult as Array<Boolean>).toMutableList()
-        list.add(result)
-        return list.toTypedArray()
+    suspend fun getCorrectCount(wordKey: String) = getWords()[wordKey].correctCount as Int
+
+    suspend fun getSizeForDstLang(dstLang: String): Int {
+        return getWordsAsArray { wordKey -> Languages.getDstLang(wordKey).key == dstLang }.size
     }
-
-    suspend fun quizResult(word: String) = getWords()[word].quizResult as Array<Boolean>
-
-    private fun keys(words: dynamic) = js("Object").keys(words) as Array<String>
-    suspend fun size() = keys(getWords()).size
 
     private fun contains(words: dynamic, word: String) = keys(words).contains(word)
+    private fun keys(words: dynamic) = js("Object").keys(words) as Array<String>
 
-    private suspend fun getWords() = getStorage("words", js("{}"))
-    private suspend fun setWords(words: dynamic) = setStorage("words", words)
+    private suspend fun getWords(): dynamic = getStorage("words", js("{}"))
 
-    suspend fun getWordsAsArray(): Array<dynamic> {
+    suspend fun setWords(words: dynamic) = setStorage("words", words)
+
+    suspend fun getWordsAsArray(filter: (word: dynamic) -> Boolean): Array<dynamic> {
         val words = getStorage("words", js("{}"))
-        val keys = keys(words)
-        val list = mutableListOf<dynamic>()
-        for (key in keys) {
-            list.add(
-                createProps(
-                    "word", key,
-                    "quizResult", words[key].quizResult,
-                    "translation", words[key].translation
-                )
-            )
-        }
-        return list.toTypedArray()
+        return keys(words)
+            .filter(filter)
+            .map {
+                createProps("wordKey", it, "translation", words[it].translation, "correctCount", words[it].correctCount)
+            }
+            .toTypedArray()
     }
 }
