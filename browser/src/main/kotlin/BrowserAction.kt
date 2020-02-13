@@ -73,6 +73,7 @@ fun setChoices(response: dynamic) {
         val choiceButton = choiceDom(response.wordKey, response.choices[idx], idx)
         choices.appendChild(choiceButton)
     }
+    // TODO: show in dst language.
     val choiceButton = choiceDom(response.wordKey, "上記のどれでもない")
     choices.appendChild(choiceButton)
 }
