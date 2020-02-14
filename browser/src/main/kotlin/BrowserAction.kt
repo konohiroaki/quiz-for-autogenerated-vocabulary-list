@@ -5,6 +5,7 @@ import Util.Companion.select
 import Util.Companion.selectAll
 import kotlinx.html.button
 import kotlinx.html.dom.create
+import kotlinx.html.js.div
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.style
 import org.w3c.dom.HTMLButtonElement
@@ -73,9 +74,14 @@ fun setChoices(response: dynamic) {
         val choiceButton = choiceDom(response.wordKey, response.choices[idx], idx)
         choices.appendChild(choiceButton)
     }
-    // TODO: show in dst language.
-    val choiceButton = choiceDom(response.wordKey, "上記のどれでもない")
+    val fifthChoiceText = Languages.getDstLang(response.wordKey).fifthChoiceText
+    val choiceButton = choiceDom(response.wordKey, fifthChoiceText)
+    choices.appendChild(divider())
     choices.appendChild(choiceButton)
+}
+
+fun divider(): HTMLElement {
+    return document.create.div { style = "height:10px" }
 }
 
 fun choiceDom(wordKey: String, translation: String, guess: Int = CHOICE_COUNT): HTMLElement {

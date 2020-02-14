@@ -1,6 +1,6 @@
-enum class Languages(val key: String) {
-    ENGLISH("en"),
-    JAPANESE("ja");
+enum class Languages(val key: String, val fifthChoiceText: String) {
+    ENGLISH("en", "None of the above"),
+    JAPANESE("ja", "上記のどれでもない");
 
     companion object {
         private val map = values().associateBy(Languages::key)

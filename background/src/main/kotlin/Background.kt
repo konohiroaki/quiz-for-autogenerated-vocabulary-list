@@ -111,7 +111,7 @@ class Background {
 
     private suspend fun getChoices(dstLang: Languages, translation: String): Pair<Array<String>, Int> {
         val choices = mutableSetOf<String>()
-        if (Random.nextInt(5) == 0) {
+        if (Random.nextInt(4) != 0) {
             choices.add(translation)
         }
         while (choices.size < CHOICE_COUNT) {

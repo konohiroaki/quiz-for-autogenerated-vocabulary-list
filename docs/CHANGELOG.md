@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.1] - 2020-02-15
+- Show "None of the above" in proper language. (It was always Japanese)
+- Fix probability of "None of the above". (It was 4/5, but now it's 1/4)
+
 ## [2.0.0] - 2020-02-13
 - (#4) Support arbitrary language to arbitrary language instead of only English to Japanese
   - Support Japanese to English on alc.co.jp
