@@ -1,5 +1,8 @@
 # Changelog
 
+## [2.1.1] - 2020-02-22
+- Fix parsing error on translate.google.com
+
 ## [2.1.0] - 2020-02-22
 - Support translate.google.com
   - Only Japanese and English is supported
