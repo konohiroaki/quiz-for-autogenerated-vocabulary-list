@@ -15,5 +15,6 @@ enum class Languages(val key: String, val fifthChoiceText: String) {
         fun getWord(wordKey: String) = wordKey.substringAfter(":")
         fun getSrcLang(wordKey: String): Languages = map[wordKey.substring(0, 2)]!!
         fun getDstLang(wordKey: String): Languages = map[wordKey.substring(2, 4)]!!
+        fun getLang(key: String?): Languages? = map[key]
     }
 }

@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.1.0] - 2020-02-22
+- Support translate.google.com
+  - Only Japanese and English is supported
+  - Only community verified translation is registered
+
 ## [2.0.1] - 2020-02-15
 - Show "None of the above" in proper language. (It was always Japanese)
 - Fix probability of "None of the above". (It was 4/5, but now it's 1/4)
