@@ -51,9 +51,8 @@ class TranslateGoogleCom : TranslationWebsiteRegisterer() {
     }
 
     private fun isVerifiedTranslation(): Boolean {
-        return !document.querySelector(".trans-verified-button")
-            ?.getAttribute("style")
-            .equals("display:none")
+        val verifiedButton = document.querySelector(".trans-verified-button")
+        return verifiedButton != null && verifiedButton.getAttribute("style") != "display:none"
     }
 
     override fun isValidPage(): Boolean {
