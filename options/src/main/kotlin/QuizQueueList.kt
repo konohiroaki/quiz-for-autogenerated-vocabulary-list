@@ -12,7 +12,12 @@ class QuizQueueList {
         fun update(quizQueue: Array<String>) {
             select<HTMLDivElement>("#quizQueue").replaceWith(document.create.div {
                 id = "quizQueue"
-                quizQueue.forEach { div("list-group-item list-group-item-action") { +it } }
+                quizQueue.forEach {
+                    div("list-group-item list-group-item-action") {
+                        div { +("${Languages.getSrcLang(it)} ➤ ${Languages.getDstLang(it)}") }
+                        div { +Languages.getWord(it) }
+                    }
+                }
             })
         }
     }
