@@ -59,7 +59,8 @@ class Background {
                     "type", "basic",
                     "iconUrl", "icon128.png",
                     "title", "New word registered",
-                    "message", "[${request.wordKey}]: ${request.translation}",
+                    "message", "${Languages.getSrcLang(request.wordKey)} ➤ ${Languages.getDstLang(request.wordKey)}\n" +
+                            "${Languages.getWord(request.wordKey)}: ${request.translation}",
                     "buttons", arrayOf(createProps("title", "Cancel word registration"))
                 )
             )
