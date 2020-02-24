@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.1.2] - 2020-02-24
+- Improve notification message on word registration to be more user friendly
+- Improve quiz queue appearance on option page to be more user friendly
+
 ## [2.1.1] - 2020-02-22
 - Fix parsing error on translate.google.com
 
